@@ -633,11 +633,10 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 **Project Maintainer**: Your Name
 
-- Email: your.email@example.com
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
-- Twitter: [@yourhandle](https://twitter.com/yourhandle)
+- Email: elgendyo240@gmail.com
+- LinkedIn: [Your LinkedIn](https://www.linkedin.com/in/osama-elgendy-416329331?originalSubdomain=eg)
 
-**Project Link**: [https://github.com/yourusername/coursebook](https://github.com/yourusername/coursebook)
+**Project Link**: [https://github.com/osama816/Courses_laravel](https://github.com/osama816/Courses_laravel)
 
 ---
 
@@ -654,17 +653,17 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📊 Project Stats
 
-![GitHub stars](https://img.shields.io/github/stars/yourusername/coursebook?style=social)
-![GitHub forks](https://img.shields.io/github/forks/yourusername/coursebook?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/yourusername/coursebook?style=social)
-![GitHub issues](https://img.shields.io/github/issues/yourusername/coursebook)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/yourusername/coursebook)
+![GitHub stars](https://img.shields.io/github/stars/osama816/Courses_laravel?style=social)
+![GitHub forks](https://img.shields.io/github/forks/osama816/Courses_laravel?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/osama816/Courses_laravel?style=social)
+![GitHub issues](https://img.shields.io/github/issues/osama816/Courses_laravel)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/osama816/Courses_laravel)
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by [Your Name](https://github.com/yourusername)**
+**Made with ❤️ by [Osama Elgendy](https://github.com/osama816)**
 
 ⭐ **Star this repo if you find it helpful!** ⭐
 
