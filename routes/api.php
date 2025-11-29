@@ -8,5 +8,5 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::match(['GET','POST'],'/payment/process', [PaymentController::class, 'paymentProcess'])->name('payment.process');
-Route::match(['GET','POST'],'/payment/callback', [PaymentController::class, 'callBack']);
+Route::match(['GET','POST'],'/payment/process', [PaymentController::class, 'paymentProcess'])->name('payment.process')->middleware('throttle:limit3');
+Route::match(['GET','POST'],'/payment/callback', [PaymentController::class, 'callBack'])->middleware('throttle:limit3');

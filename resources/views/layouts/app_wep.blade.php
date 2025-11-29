@@ -108,7 +108,7 @@
     </header>
     <!-- Page Header-->
 
-<x-flash-messages data-auto-dismiss="true" />
+<x-flash_messages data-auto-dismiss="true" />
 
     <!-- Main Content-->
     @yield('content')
