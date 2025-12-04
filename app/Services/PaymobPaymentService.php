@@ -4,102 +4,107 @@ namespace App\Services;
 
 use App\Helper\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use App\Interfaces\PaymentGatewayInterface;
 use Illuminate\Support\Facades\Log;
 
 class PaymobPaymentService extends BasePaymentService implements PaymentGatewayInterface
 {
-    /**
-     * Create a new class instance.
-     */
     protected $api_key;
     protected $integrations_id;
 
     public function __construct()
     {
-        $this->base_url = env("PAYMOD_BASE_URL");
-        $this->api_key = env("PAYMOD_API_KEY");
+        $this->base_url = config('payment.paymob.base_url');
+        $this->api_key = config('payment.paymob.api_key');
+        $this->integrations_id = config('payment.paymob.integration_ids');
         $this->header = [
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ];
-
-        $this->integrations_id = [5403743,5403761,5403762];
     }
 
-//first generate token to access api
-    protected function generateToken()
-    {
-        $response = $this->buildRequest('POST', '/api/auth/tokens', ['api_key' => $this->api_key]);
-        return $response->getData(true)['data']['token'];
-    }
-
-
-
+    /**
+     * Send payment request
+     */
     public function sendPayment(Request $request)
     {
-        $this->header['Authorization'] = 'Bearer ' . $this->generateToken();
-        //validate data before sending it
-       $data = $this->formatData($request);
+        $token = $this->generateToken();
+        $this->header['Authorization'] = 'Bearer ' . $token;
 
+        $data = $this->formatPaymentData($request);
         $response = $this->buildRequest('POST', '/api/ecommerce/orders', $data);
-        //handel payment response data and return it
-        if ($response->getData(true)['success']) {
-            //dd($response->getData(true));
+
+        if ($this->isResponseSuccessful($response)) {
             return $response->getData(true);
         }
 
-
-      return ApiResponse::error('Payment initiation failed', ['url' => route('payment.failed')], 500);
-
+        return ApiResponse::error('فشل بدء الدفع', [
+            'url' => route('payment.failed')
+        ], 500);
     }
 
+    /**
+     * Handle payment callback
+     */
     public function callBack(Request $request): bool
     {
         $response = $request->all();
-        Storage::put('paymob_response.json', json_encode($request->all()));
-        Log::channel('payment')->info('Paymob callback response', $response);
 
-        if (isset($response['success']) && $response['success'] === 'true') {
+        $this->logCallback($response);
 
-            return true;
-        }
-        return false;
-
+        return $this->isCallbackSuccessful($response);
     }
 
+    /**
+     * Generate authentication token
+     */
+    protected function generateToken(): string
+    {
+        $response = $this->buildRequest('POST', '/api/auth/tokens', [
+            'api_key' => $this->api_key
+        ]);
 
-    protected function formatData(Request $request): array
+        return $response->getData(true)['data']['token'];
+    }
+
+    /**
+     * Format payment data
+     */
+    protected function formatPaymentData(Request $request): array
     {
         return [
-            "amount_cents" => $request->get('amount_cents') * 100,
-            "currency" => $request->get('currency'),
-            "api_source" => "INVOICE",
-            "integrations" => $this->integrations_id,
-            "shipping_data" => [
-                "booking_id" => $request->get('booking_id','test'),
-
+            'amount_cents' => $request->get('amount_cents') * 100,
+            'currency' => $request->get('currency', 'EGP'),
+            'api_source' => 'INVOICE',
+            'integrations' => $this->integrations_id,
+            'shipping_data' => [
+                'booking_id' => $request->get('booking_id'),
             ],
         ];
     }
 
+    /**
+     * Check if response is successful
+     */
+    private function isResponseSuccessful($response): bool
+    {
+        $data = $response->getData(true);
+        return isset($data['success']) && $data['success'];
+    }
+
+    /**
+     * Check if callback is successful
+     */
+    private function isCallbackSuccessful(array $response): bool
+    {
+        return isset($response['success']) && $response['success'] === 'true';
+    }
+
+    /**
+     * Log callback data
+     */
+    private function logCallback(array $response): void
+    {
+        Log::channel('payment')->info('Paymob callback response', $response);
+    }
 }
-
-// [▼ // app\Services\PaymobPaymentService.php:49
-//   "amount_cents" => 0
-//   "currency" => "EGP"
-//   "api_source" => "INVOICE"
-//   "integrations" => array:3 [▶]
-//   "shipping_data" => array:1 [▼
-//     "booking_id" => "test"
-//   ]
-// ]
-
-// array:5 [▼ // app\Services\PaymobPaymentService.php:49
-//   "amount_cents" => "17133"
-//   "currency" => "EGP"
-//   "shipping_data" => array:2 [▶]
-//   "api_source" => "INVOICE"
-//   "integrations" => array:3 [▶]
-// ]

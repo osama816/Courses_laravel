@@ -36,9 +36,15 @@ return [
     ],
 
     'paypal' => [
-    'client_id' => env('PAYPAL_CLIENT_ID'),
-    'secret' => env('PAYPAL_SECRET'),
-    'mode' => env('PAYPAL_MODE', 'sandbox'),
-],
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+        'secret' => env('PAYPAL_SECRET'),
+        'mode' => env('PAYPAL_MODE', 'sandbox'),
+    ],
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+    ],
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+    ]
 
 ];

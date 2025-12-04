@@ -5,88 +5,162 @@ namespace App\Services;
 use App\Helper\ApiResponse;
 use App\Interfaces\PaymentGatewayInterface;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+
 class MyFatoorahPaymentService extends BasePaymentService implements PaymentGatewayInterface
 {
-    /**
-     * Create a new class instance.
-     */
     protected $api_key;
+
     public function __construct()
     {
-        $this->base_url = env("MYFATOORAH_BASE_URL");
-        $this->api_key = env("MYFATOORAH_API_KEY");
+        $this->base_url = config('payment.myfatoorah.base_url');
+        $this->api_key = config('payment.myfatoorah.api_key');
         $this->header = [
             'accept' => 'application/json',
-            "Content-Type" => "application/json",
-            "Authorization" => "Bearer " . $this->api_key,
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . $this->api_key,
         ];
     }
 
+    /**
+     * Send payment request
+     */
     public function sendPayment(Request $request)
     {
-
-        $data = $this->formatData($request);
-
+        $data = $this->formatPaymentData($request);
         $response = $this->buildRequest('POST', '/v2/SendPayment', $data);
-        //handel payment response data and return it
-         if($response->getData(true)['success']){
-         $url=$response->getData(true)['data']['Data']['InvoiceURL'];
-            $booking_id=$response->getData(true)['data']['Data']['CustomerReference'];
-          // dd(['url' => $url,'booking_id'=>$booking_id]);
-            return ApiResponse::success(['url' => $url,'booking_id'=>$booking_id],'send payment successful', 200)->getData(true);
+
+        if ($this->isResponseSuccessful($response)) {
+            return $this->extractPaymentUrl($response);
         }
-         return ['success' => false,'url'=>route('payment.failed')];
+
+        return $this->getFailedResponse();
     }
 
+    /**
+     * Handle payment callback
+     */
     public function callBack(Request $request)
     {
-        $data=[
-            'KeyType' => 'paymentId',
-            'Key' => $request->input('paymentId'),
-        ];
-        $response=$this->buildRequest('POST', '/v2/getPaymentStatus', $data);
-        $response_data=$response->getData(true);
-       // dd($response_data['data']['Data']['InvoiceValue']);
-        $payment_method='myfatoorah';
-        $amount=$response_data['data']['Data']['InvoiceValue'];
-        $booking_id=$response_data['data']['Data']['CustomerReference'];
-        $status=$response_data['data']['Data']['InvoiceStatus'];
-        $TransactionId=$response_data['data']['Data']['InvoiceTransactions'][0]['TransactionId'];
-        Log::channel('payment')->info('myfatoorah_response.json',[
-            'myfatoorah_callback_response'=>$request->all(),
-            'myfatoorah_response_status'=>$response_data
-        ]);
+        $statusData = $this->getPaymentStatus($request->input('paymentId'));
 
-        if($response_data['data']['Data']['InvoiceStatus']==='Paid'){
-            $data= [
-                'amount'=>$amount,
-                'payment_method'=>$payment_method,
-                'booking_id'=>$booking_id,
-                'status'=>$status,
-                'TransactionId'=>$TransactionId,
-            ];
+        $this->logCallback($request, $statusData);
 
-            return $data;
+        if ($this->isPaymentPaid($statusData)) {
+            return $this->formatSuccessResponse($statusData);
         }
 
-        return false ;
+        return false;
     }
 
+    /**
+     * Get payment status from gateway
+     */
+    private function getPaymentStatus(string $paymentId): array
+    {
+        $data = [
+            'KeyType' => 'paymentId',
+            'Key' => $paymentId,
+        ];
 
-        protected function formatData(Request $request): array
+        $response = $this->buildRequest('POST', '/v2/getPaymentStatus', $data);
+        return $response->getData(true);
+    }
+
+    /**
+     * Format payment data
+     */
+    protected function formatPaymentData(Request $request): array
     {
         return [
-            "InvoiceValue" => $request->get('InvoiceValue'),
-            "DisplayCurrencyIso" => $request->get('currency'),
-            "NotificationOption" => 'LNK',
-            "Language" => 'en',
-            "CallBackUrl" => $request->getSchemeAndHttpHost().'/api/payment/callback?gateway_type=myfatoorah',
-            "CustomerName" => $request->get('CustomerName'),
-            "CustomerEmail" => $request->get('CustomerEmail'),
-            "CustomerReference" => $request->get('booking_id'),
+            'InvoiceValue' => $request->get('InvoiceValue'),
+            'DisplayCurrencyIso' => $request->get('currency'),
+            'NotificationOption' => 'LNK',
+            'Language' => 'ar',
+            'CallBackUrl' => $this->getCallbackUrl($request),
+            'CustomerName' => $request->get('CustomerName'),
+            'CustomerEmail' => $request->get('CustomerEmail'),
+            'CustomerReference' => $request->get('booking_id'),
         ];
     }
 
+    /**
+     * Get callback URL
+     */
+    private function getCallbackUrl(Request $request): string
+    {
+        return $request->getSchemeAndHttpHost()
+            . '/api/payment/callback?gateway_type=myfatoorah';
+    }
+
+    /**
+     * Check if response is successful
+     */
+    private function isResponseSuccessful($response): bool
+    {
+        $data = $response->getData(true);
+        return isset($data['success']) && $data['success'];
+    }
+
+    /**
+     * Extract payment URL from response
+     */
+    private function extractPaymentUrl($response): array
+    {
+        $data = $response->getData(true);
+        return [
+            'success' => true,
+            'data' => [
+                'url' => $data['data']['Data']['InvoiceURL'],
+                'booking_id' => $data['data']['Data']['CustomerReference'],
+            ],
+        ];
+    }
+
+    /**
+     * Get failed response
+     */
+    private function getFailedResponse(): array
+    {
+        return [
+            'success' => false,
+            'url' => route('payment.failed'),
+        ];
+    }
+
+    /**
+     * Check if payment is paid
+     */
+    private function isPaymentPaid(array $statusData): bool
+    {
+        return isset($statusData['data']['Data']['InvoiceStatus'])
+            && $statusData['data']['Data']['InvoiceStatus'] === 'Paid';
+    }
+
+    /**
+     * Format success response
+     */
+    private function formatSuccessResponse(array $statusData): array
+    {
+        $data = $statusData['data']['Data'];
+
+        return [
+            'amount' => $data['InvoiceValue'],
+            'payment_method' => 'myfatoorah',
+            'booking_id' => $data['CustomerReference'],
+            'status' => 'paid',
+            'TransactionId' => $data['InvoiceTransactions'][0]['TransactionId'],
+        ];
+    }
+
+    /**
+     * Log callback data
+     */
+    private function logCallback(Request $request, array $statusData): void
+    {
+        Log::channel('payment')->info('MyFatoorah callback', [
+            'request' => $request->all(),
+            'status' => $statusData,
+        ]);
+    }
 }

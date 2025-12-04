@@ -65,14 +65,14 @@
                             </div>
 
                             @if($booking->payment)
-                            <div class="timeline-item {{ $booking->payment->isPaid() ? 'active' : '' }}">
-                                <div class="timeline-icon {{ $booking->payment->isPaid() ? 'bg-success' : 'bg-secondary' }}">
+                            <div class="timeline-item {{ $booking->payment->status === 'paid' ? 'active' : '' }}">
+                                <div class="timeline-icon {{ $booking->payment->status === 'paid' ? 'bg-success' : 'bg-secondary' }}">
                                     <i class="bi bi-credit-card text-white"></i>
                                 </div>
                                 <div class="timeline-content">
                                     <h6 class="fw-bold mb-1">{{ __('booking.payment_received') }}</h6>
                                     <p class="text-muted mb-0 small">
-                                        @if($booking->payment->isPaid())
+                                        @if($booking->payment->status === 'paid')
                                             {{ $booking->payment->paid_at->format('d M Y, h:i A') }}
                                         @else
                                             {{ __('booking.pending_payment') }}
@@ -196,7 +196,7 @@
 
                             <dt class="col-sm-4 text-muted mb-2">{{ __('booking.payment_status') }}</dt>
                             <dd class="col-sm-8 mb-2">
-                                @if($booking->payment->isPaid())
+                                @if($booking->payment->status === 'paid')
                                     <span class="badge bg-success-subtle text-success">
                                         <i class="bi bi-check-circle me-1"></i>{{ __('booking.paid') }}
                                     </span>
@@ -262,7 +262,7 @@
                             @endif
 
                             {{-- Download Invoice (if paid) --}}
-                            @if($booking->payment && $booking->payment->isPaid())
+                            @if($booking->payment && $booking->payment->status === 'paid')
                                 <a href="#" class="btn btn-outline-secondary rounded-pill">
                                     <i class="bi bi-download me-2"></i>{{ __('booking.download_invoice') }}
                                 </a>

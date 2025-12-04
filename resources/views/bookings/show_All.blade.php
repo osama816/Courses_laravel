@@ -22,18 +22,18 @@
         </div>
 
         {{-- Statistics Cards --}}
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-4" >
             <div class="col-md-4">
                 <div class="card border-0 shadow-sm rounded-4 bg-success-subtle">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
-                                <div class="bg-success text-white rounded-circle p-3" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
+                                <div class="bg-success  rounded-circle p-3" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; color: var(--text);">
                                     <i class="bi bi-check-circle fs-4"></i>
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h6 class="text-muted mb-1">{{ __('booking.confirmed') }}</h6>
+                                <h6 class="text-muted mb-1" style="color: var(--text);">{{ __('booking.confirmed') }}</h6>
                                 <h3 class="mb-0 fw-bold">{{ $bookings->where('status', 'confirmed')->count() }}</h3>
                             </div>
                         </div>
@@ -46,7 +46,7 @@
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
-                                <div class="bg-warning text-white rounded-circle p-3" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
+                                <div class="bg-warning rounded-circle p-3" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
                                     <i class="bi bi-clock-history fs-4"></i>
                                 </div>
                             </div>
@@ -64,7 +64,7 @@
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
-                                <div class="bg-primary text-white rounded-circle p-3" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
+                                <div class="bg-primary  rounded-circle p-3" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
                                     <i class="bi bi-book fs-4"></i>
                                 </div>
                             </div>
@@ -137,7 +137,7 @@
                                                 <span class="badge bg-secondary-subtle text-secondary">
                                                     #{{ $booking->id }}
                                                 </span>
-                                                @if($booking->payment && $booking->payment->isPaid())
+                                                @if($booking->payment && $booking->payment->status === 'paid')
                                                     <span class="badge bg-success-subtle text-success">
                                                         <i class="bi bi-credit-card me-1"></i>{{ __('booking.paid') }}
                                                     </span>
@@ -215,7 +215,7 @@
                                                 </a>
                                             @endif
 
-                                            @if($booking->payment && $booking->payment->isPaid())
+                                            @if($booking->payment && $booking->payment->status === 'paid')
                                                 <a href="#" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
                                                     <i class="bi bi-download me-1"></i>{{ __('booking.invoice') }}
                                                 </a>
@@ -301,6 +301,7 @@
 
     .card[data-status="pending"] {
         border-left: 4px solid #ffc107;
+        
     }
 
     .card[data-status="cancelled"] {

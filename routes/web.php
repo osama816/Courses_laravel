@@ -26,41 +26,21 @@ Route::get('/payment/booking/{gateway_type}', [PaymentController::class, 'paymen
 Route::get('/payment/payment-success', [PaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment/payment-failed', [PaymentController::class, 'failed'])->name('payment.failed');
 
+// Invoice routes
+Route::middleware('auth')->group(function () {
+    Route::get('/invoice/{id}/download', [App\Http\Controllers\InvoiceController::class, 'download'])->name('invoice.download');
+    Route::get('/invoice/{id}', [App\Http\Controllers\InvoiceController::class, 'show'])->name('invoice.show');
+});
+
+// MCP Support Chat
+Route::middleware('auth')->post('/mcp/support/chat', [App\Http\Controllers\McpSupportController::class, 'chat'])->name('mcp.support.chat');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-// Route::get('cerate_course', function(){
-//     Category::create([
-//         'name'=> 'devolpar',
-//         'slug'=> 'dev',
-//     ]);
-//     Instructor::create([
-//         'user_id'=> '1',
-//         'bio'=> 'bio',
-//         'avatar_url'=> 'contact-bg.jpg'
-//     ]);
 
-//     course::create([
-//         'title' => 'PHP',
-//         'description' => 'PHP',
-//         'category_id' => 1,
-//         'instructor_id' => '1',
-//         'price' => 1000,
-//         'level' => 'Beginner',
-//         'image_url' => 'contact-bg.jpg',
-//         'total_seats' => 10,
-//         'available_seats' => 10,
-//         'rating' => 0,
-//         'duration' => 0
-//     ]);    Booking::create([
-//         'user_id'=> '1',
-//         "course_id" => '3',
-//         "seats" => 'pending',
-//         'payment_method'=>'cash'
-//     ]);
-// });
 
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::resource('/courses', CourseController::class);
