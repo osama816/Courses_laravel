@@ -6,6 +6,7 @@ use App\Models\course;
 use App\Http\Requests\StorecourseRequest;
 use App\Http\Requests\UpdatecourseRequest;
 use  App\Services\CourseServices;
+use Symfony\Component\HttpFoundation\Request;
 
 class CourseController extends Controller
 {    protected $CourseServices;
@@ -36,7 +37,7 @@ class CourseController extends Controller
      */
     public function store(StorecourseRequest $request)
     {
-        
+
     }
 
     /**
@@ -70,5 +71,10 @@ class CourseController extends Controller
     public function destroy(course $course)
     {
         //
+    }
+    public function search(Request $request){
+        $courses = $this->CourseServices->searchCourse( $request);
+        return $courses;
+
     }
 }

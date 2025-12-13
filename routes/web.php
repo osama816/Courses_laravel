@@ -1,57 +1,151 @@
 <?php
 
-use App\Models\User;
-use App\Models\course;
-use App\Models\Booking;
-use App\Models\Category;
-use App\Models\Instructor;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PageController;
-use App\Http\Controllers\CourseController;
-use App\Http\Controllers\PayPalController;
-use App\Http\Controllers\BookingController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\{
+    PageController,
+    CourseController,
+    BookingController,
+    PaymentController,
+    ProfileController,
+    LanguageController,
+    InvoiceController,
+    McpSupportController
+};
 
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// ============================================================================
+// Public Routes
+// ============================================================================
 
-// Payment callback routes
-Route::get('/payment/booking/{gateway_type}', [PaymentController::class, 'paymentProcess'])->name('payment.booking');
-Route::get('/payment/payment-success', [PaymentController::class, 'success'])->name('payment.success');
-Route::get('/payment/payment-failed', [PaymentController::class, 'failed'])->name('payment.failed');
-
-// Invoice routes
-Route::middleware('auth')->group(function () {
-    Route::get('/invoice/{id}/download', [App\Http\Controllers\InvoiceController::class, 'download'])->name('invoice.download');
-    Route::get('/invoice/{id}', [App\Http\Controllers\InvoiceController::class, 'show'])->name('invoice.show');
-});
-
-// MCP Support Chat
-Route::middleware('auth')->post('/mcp/support/chat', [App\Http\Controllers\McpSupportController::class, 'chat'])->name('mcp.support.chat');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-
+/**
+ * Home Page
+ */
 Route::get('/', [PageController::class, 'home'])->name('home');
-Route::resource('/courses', CourseController::class);
-Route::resource('/bookings', BookingController::class)->except(['create']);
-Route::get('/bookings/create/{course}', [BookingController::class, 'create'])
-->name('bookings.create');
 
-
-
-
-
+/**
+ * Language Switcher
+ */
 Route::get('lang/{lang}', [LanguageController::class, 'switch'])->name('lang.switch');
 
-require __DIR__.'/auth.php';
+/**
+ * Courses - Public Browse & View
+ */
+Route::resource('courses', CourseController::class)->only(['index', 'show']);
+
+// ============================================================================
+// Authentication Required Routes
+// ============================================================================
+
+Route::middleware(['auth', 'verified'])->group(function () {
+
+    // ------------------------------------------------------------------------
+    // Dashboard
+    // ------------------------------------------------------------------------
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+    // ------------------------------------------------------------------------
+    // courses
+    // ------------------------------------------------------------------------
+    Route::middleware(['auth', 'permission:create courses'])->group(function () {
+        Route::get('courses/create', [CourseController::class, 'create'])->name('courses.create');
+        Route::post('courses', [CourseController::class, 'store'])->name('courses.store');
+    });
+
+    Route::middleware(['auth', 'permission:edit courses'])->group(function () {
+        Route::get('courses/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
+        Route::put('courses/{course}', [CourseController::class, 'update'])->name('courses.update');
+    });
+
+    Route::middleware(['auth', 'permission:delete courses'])->group(function () {
+        Route::delete('courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+    });
+
+
+    // ------------------------------------------------------------------------
+    // Booking Management
+    // ------------------------------------------------------------------------
+    Route::prefix('bookings')->middleware(['auth'])->group(function () {
+
+        Route::get('/', [BookingController::class, 'index'])
+            ->middleware('permission:view bookings')
+            ->name('bookings.index');
+
+        Route::get('/{booking}', [BookingController::class, 'show'])
+            ->middleware('permission:view bookings')
+            ->name('bookings.show');
+
+        Route::get('/create/{course}', [BookingController::class, 'create'])
+            ->middleware('permission:create bookings')
+            ->name('bookings.create');
+
+        Route::post('/', [BookingController::class, 'store'])
+            ->middleware('permission:create bookings')
+            ->name('bookings.store');
+
+        Route::put('/{booking}', [BookingController::class, 'update'])
+            ->middleware('permission:update booking status')
+            ->name('bookings.update');
+
+        Route::delete('/{booking}', [BookingController::class, 'destroy'])
+            ->middleware('permission:cancel bookings')
+            ->name('bookings.destroy');
+    });
+
+
+    // ------------------------------------------------------------------------
+    // Payment Processing
+    // ------------------------------------------------------------------------
+    Route::prefix('payment')->middleware(['auth'])->group(function () {
+        Route::get('/booking/{gateway_type}', [PaymentController::class, 'paymentProcess'])
+            ->middleware('permission:view payments')
+            ->name('payment.booking');
+
+        Route::get('/success', [PaymentController::class, 'success'])
+            ->name('payment.success');
+
+        Route::get('/failed', [PaymentController::class, 'failed'])
+            ->name('payment.failed');
+    });
+
+
+    // ------------------------------------------------------------------------
+    // Invoice Management
+    // ------------------------------------------------------------------------
+    Route::prefix('invoice')->name('invoice.')->group(function () {
+        // View invoice
+        Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
+
+        // Download invoice PDF
+        Route::get('/{id}/download', [InvoiceController::class, 'download'])->name('download');
+    });
+
+    // ------------------------------------------------------------------------
+    // AI Support Chat (MCP Server)
+    // ------------------------------------------------------------------------
+    Route::prefix('mcp')->name('mcp.')->group(function () {
+        // Send chat message to AI support
+        Route::post('/support/chat', [McpSupportController::class, 'chat'])
+            ->name('support.chat');
+    });
+});
+
+// ============================================================================
+// Additional Authentication Routes
+// ============================================================================
+
+/**
+ * Include Laravel Breeze authentication routes
+ * (login, register, password reset, etc.)
+ */
+require __DIR__ . '/auth.php';

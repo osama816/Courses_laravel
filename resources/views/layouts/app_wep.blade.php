@@ -68,7 +68,7 @@
                                     class="bi bi-grid-3x3-gap me-1"></i>{{ __('nav.courses') }}</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('bookings.index') }}"><i
                                     class="bi bi-calendar2-check me-1"></i>{{ __('nav.book') }}</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('profile.edit') }}"><i
+                        <li class="nav-item"><a class="nav-link" href=""><i
                                     class="bi bi-person-circle me-1"></i>{{ __('nav.profile') }}</a></li>
                         <li class="nav-item d-none d-lg-block mx-2"><a class="nav-link nav-icon" href="courses.html"
                                 aria-label="Search"><i class="bi bi-search"></i></a></li>

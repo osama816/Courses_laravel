@@ -9,9 +9,9 @@ class Instructor extends Model
 {
     /** @use HasFactory<\Database\Factories\InstructorFactory> */
     use HasFactory;
-    
+
     protected $fillable = ['user_id', 'bio', 'avatar_url'];
-    
+
     /**
      * Relationships
      */
@@ -19,9 +19,12 @@ class Instructor extends Model
     {
         return $this->belongsTo(User::class);
     }
-    
+
     public function courses()
     {
         return $this->hasMany(course::class);
+    }
+    public function isInstructor(){
+        return $this->user->role === 'instructor';
     }
 }

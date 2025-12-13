@@ -176,14 +176,14 @@
                             </button>
                         @else
                             <a href="{{ route('login') }}"
-                               class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>
+                               class="btn btn-primary  px-3 rounded-pill shadow-sm">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>
                                 {{ __('booking.login_to_book') }}
                             </a>
                         @endauth
 
                         <a href="{{ route('courses.show', $course->id) }}"
-                           class="btn btn-outline-secondary btn-lg px-4 rounded-pill">
+                           class="btn btn-outline-secondary btn-lg px-2 rounded-pill">
                             <i class="bi bi-arrow-left me-2"></i>
                             {{ __('booking.back_to_course') }}
                         </a>

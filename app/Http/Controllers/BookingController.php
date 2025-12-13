@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
 use App\Http\Requests\StoreBookingRequest;
 use App\Http\Requests\UpdateBookingRequest;
 
@@ -15,7 +16,8 @@ class BookingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() {
+    public function index()
+    {
         $bookings = Booking::where('user_id', Auth::id())->get();
         return view('bookings.show_All', ['bookings' => $bookings]);
     }
@@ -138,7 +140,8 @@ class BookingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Booking $booking) {
+    public function show(Booking $booking)
+    {
         $course = Course::findOrFail($booking->course_id);
         return view('bookings.show', ['booking' => $booking, 'course' => $course]);
     }
@@ -167,5 +170,17 @@ class BookingController extends Controller
         $booking->delete();
         return redirect()->route('bookings.index')
             ->with('success', __('booking.booking_cancelled'));
+    }
+
+    public function undoDelete(Request $request, Booking $booking)
+    {
+        if ($request->user()->hasRole('admin')) {
+            $booking->restore();
+            return redirect()->route('bookings.index')
+                ->with('success', 'booking.booking_restored');
+        } else {
+            return redirect()->route('bookings.index')
+                ->with('error', 'booking.unauthorized');
+        }
     }
 }

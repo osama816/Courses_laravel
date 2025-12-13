@@ -17,7 +17,7 @@ class InstructorFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
+            'user_id' => '3',
             'bio' => $this->faker->paragraph(2),
             'avatar_url' => $this->faker->imageUrl(200, 200, 'people', true),
         ];

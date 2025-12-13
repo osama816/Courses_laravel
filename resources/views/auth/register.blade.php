@@ -52,23 +52,6 @@
     });
 
     // ------------------------------
-    // Handle validation errors: Open appropriate panel
-    // ------------------------------
-    @php
-        // Collect errors related to register and login
-        $registerErrors = $errors->has('name') || $errors->has('password_confirmation');
-        $loginErrors = $errors->has('email') && !$registerErrors;
-    @endphp
-
-    @if($registerErrors)
-        // Open Sign Up panel
-        container2.classList.add('active');
-    @elseif($loginErrors)
-        // Open Sign In panel
-        container2.classList.remove('active');
-    @endif
-
-    // ------------------------------
     // RTL Support: Adjust overlay position based on language direction
     // ------------------------------
     document.addEventListener('DOMContentLoaded', function() {

@@ -31,6 +31,7 @@ class StorecourseRequest extends FormRequest
             'available_seats'=>['required','max:255'],
             'rating'=>['nullable','max:255'],
             'duration'=>['nullable','max:255'],
+            'instructor_id'=>['required','exists:instructors,id'],
         ];
     }
 }

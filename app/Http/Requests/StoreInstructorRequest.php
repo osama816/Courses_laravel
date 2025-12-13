@@ -11,7 +11,7 @@ class StoreInstructorRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,9 @@ class StoreInstructorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'user_id'=>['required', 'exists:users,id'],
+            'bio'=>['required', 'string'],
+            'avatar_url'=>['required', 'string'],
         ];
     }
 }

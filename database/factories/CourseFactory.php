@@ -40,8 +40,8 @@ class CourseFactory extends Factory
             'rating' => $this->faker->numberBetween(0, 5),
             'duration' => $this->faker->numberBetween(1, 20) . ' hours',
 
-            'instructor_id' => Instructor::inRandomOrder()->first()->id ?? Instructor::factory(),
-            'category_id' => Category::inRandomOrder()->first()->id ?? Category::factory(),
+            'instructor_id' =>  Instructor::factory()??Instructor::inRandomOrder()->first()->id ,
+            'category_id' =>  Category::factory()??Category::inRandomOrder()->first()->id ,
         ];
     }
 }

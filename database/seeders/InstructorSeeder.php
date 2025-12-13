@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
+use App\Models\Instructor;
 use Illuminate\Database\Seeder;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class InstructorSeeder extends Seeder
 {
@@ -12,6 +14,6 @@ class InstructorSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        Instructor::factory()->count(6)->create();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+
 class StoreBookingRequest extends FormRequest
 {
     /**
@@ -22,10 +23,7 @@ class StoreBookingRequest extends FormRequest
     {
         return [
             'course_id' => 'required|exists:courses,id',
-
-          //  'user_id' => 'required|exists:users,id',
-            //'staus' => 'required|in:pending,confirmed,cancelled',
-            'payment_method'=> 'required|in:paymob,cash,myfatoorah',
+            'payment_method' => 'required|in:paymob,cash,myfatoorah',
         ];
     }
 }

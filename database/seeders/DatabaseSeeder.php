@@ -16,14 +16,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-     course::factory()->count(6)->create();
-\App\Models\Category::factory(5)->create();
-\App\Models\User::factory(5)->create();
-\App\Models\Instructor::factory()->count(5)->create([
-    'user_id' => User::inRandomOrder()->first()->id
-]);
+        // course::factory()->count(6)->create();
+        // \App\Models\Category::factory(5)->create();
+        // \App\Models\Instructor::factory()->count(5)->create([
+        //     'user_id' => User::inRandomOrder()->first()->id
+        //]);
+        $this->call([
+            // RolesAndPermissionsSeeder::class,
+            UserSeeder::class,
+            CourseSeeder::class,
+            InstructorSeeder::class,
+            CategorySeeder::class,
 
-
+        ]);
     }
 }

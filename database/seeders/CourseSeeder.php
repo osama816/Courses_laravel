@@ -11,6 +11,6 @@ class CourseSeeder extends Seeder
     {
 
 
-
+        course::factory()->count(6)->create();
     }
 }

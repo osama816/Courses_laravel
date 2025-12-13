@@ -8,11 +8,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\CustomVerifyEmail;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -52,10 +53,10 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
 
-public function sendEmailVerificationNotification()
-{
-    $this->notify(new CustomVerifyEmail());
-}
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new CustomVerifyEmail());
+    }
     public function bookings()
     {
         return $this->hasMany(Booking::class);
@@ -65,10 +66,26 @@ public function sendEmailVerificationNotification()
     {
         return $this->hasMany(Invoice::class);
     }
+    public function instructor()
+    {
+        return $this->hasOne(Instructor::class);
+    }
 
     public function supportTickets()
     {
         return $this->hasMany(SupportTicket::class);
     }
 
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+    public function isStudent()
+    {
+        return $this->role === 'student';
+    }
+    public function isInstructor()
+    {
+        return $this->role === 'instructor';
+    }
 }

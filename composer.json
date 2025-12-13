@@ -19,6 +19,7 @@
         "mozex/anthropic-laravel": "^1.2",
         "openai-php/laravel": "^0.18.0",
         "paypal/paypal-checkout-sdk": "^1.0",
+        "spatie/laravel-permission": "^6.23",
         "spatie/laravel-translatable": "^6.11"
     },
 

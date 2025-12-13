@@ -24,4 +24,13 @@ class CourseServices
         return $Course;
     }
 
+    public function searchCourse(Request $request){
+        $search = course::query()->
+        when( $request->search, function($query) use ($request){
+            $query->where('title', 'like', '%'.$request->search.'%')->
+            orWhere('description', 'like', '%'.$request->search.'%');
+        })->get();
+        return $search;
+    }
+
 }

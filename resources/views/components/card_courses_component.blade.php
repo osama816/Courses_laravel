@@ -3,10 +3,12 @@
 <div class="col-md-4 mb-4">
 
     <div class="card card-lift h-100 course-card fade-up" aria-label="{{ $course->title }}">
-         <a href="{{ route('courses.show', $course->id) }}" >
+        <a href="{{ route('courses.show', $course->id) }}">
             @if($course->image_url)
             <img src="{{ asset('storage/'.$course->image_url) }}" class="card-img-top" alt="{{ $course->title }}">
-        @endif
+            @else
+            <img src="{{ $course->image }}" class="card-img-top" alt="{{ $course->title }}">
+            @endif
         </a>
         <div class="card-body d-flex flex-column">
             <div class="d-flex justify-content-between align-items-start mb-2">
@@ -20,24 +22,24 @@
 
             <div class="d-flex align-items-center gap-2 small mb-2">
                 @php
-                    $rating = $course->rating ?? 0;
-                    $fullStars = floor($rating);
-                    $hasHalfStar = ($rating - $fullStars) >= 0.5;
+                $rating = $course->rating ?? 0;
+                $fullStars = floor($rating);
+                $hasHalfStar = ($rating - $fullStars) >= 0.5;
                 @endphp
 
                 @for($i = 0; $i < $fullStars; $i++)
                     <i class="bi bi-star-fill text-warning"></i>
-                @endfor
+                    @endfor
 
-                @if($hasHalfStar)
+                    @if($hasHalfStar)
                     <i class="bi bi-star-half text-warning"></i>
-                @endif
+                    @endif
 
-                @for($i = 0; $i < (5 - $fullStars - ($hasHalfStar ? 1 : 0)); $i++)
-                    <i class="bi bi-star text-warning"></i>
-                @endfor
+                    @for($i = 0; $i < (5 - $fullStars - ($hasHalfStar ? 1 : 0)); $i++)
+                        <i class="bi bi-star text-warning"></i>
+                        @endfor
 
-                <span class="text-muted">({{ number_format($rating, 1) }})</span>
+                        <span class="text-muted">({{ number_format($rating, 1) }})</span>
             </div>
 
             <p class="text-truncate-2 mb-3">{{ Str::limit($course->description, 100) }}</p>
@@ -58,5 +60,5 @@
 
             </div>
         </div>
-      </div>
+    </div>
 </div>
