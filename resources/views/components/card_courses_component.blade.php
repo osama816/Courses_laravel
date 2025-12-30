@@ -5,9 +5,9 @@
     <div class="card card-lift h-100 course-card fade-up" aria-label="{{ $course->title }}">
         <a href="{{ route('courses.show', $course->id) }}">
             @if($course->image_url)
-            <img src="{{ asset('storage/'.$course->image_url) }}" class="card-img-top" alt="{{ $course->title }}">
+            <img src="{{ \Illuminate\Support\Facades\Storage::url($course->image_url) }}" class="card-img-top" alt="{{ $course->getTranslation('title', app()->getLocale()) }}">
             @else
-            <img src="{{ $course->image }}" class="card-img-top" alt="{{ $course->title }}">
+            <img src="{{ asset('assets/img/defaults/course-placeholder.jpg') }}" class="card-img-top" alt="{{ $course->getTranslation('title', app()->getLocale()) }}">
             @endif
         </a>
         <div class="card-body d-flex flex-column">

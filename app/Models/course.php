@@ -27,6 +27,12 @@ class course extends Model
         'category_id'
     ];
 
+
+    protected $casts = [
+        'title' => 'array',
+        'description' => 'array',
+    ];
+
     /**
      * Relationships
      */

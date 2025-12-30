@@ -30,7 +30,7 @@ use App\Http\Controllers\{
 /**
  * Home Page
  */
-Route::get('/', [PageController::class, 'home'])->name('home');
+Route::get('/', [CourseController::class, 'index'])->name('home');
 
 /**
  * Language Switcher

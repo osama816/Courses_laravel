@@ -10,10 +10,21 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\CustomVerifyEmail;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles;
+
+    /**
+     * Determine if the user can access the Filament panel.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return in_array($this->role, ['admin', 'instructor']);
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -26,8 +37,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
     ];
-
-
 
     /**
      * The attributes that should be hidden for serialization.

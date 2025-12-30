@@ -7,9 +7,11 @@ use App\Http\Requests\StorecourseRequest;
 use App\Http\Requests\UpdatecourseRequest;
 use  App\Services\CourseServices;
 use Symfony\Component\HttpFoundation\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CourseController extends Controller
-{    protected $CourseServices;
+{
+    protected $CourseServices;
 
     public function __construct(CourseServices $CourseServices)
     {
@@ -21,7 +23,8 @@ class CourseController extends Controller
      */
     public function index()
     {
-        //
+        $courses = $this->CourseServices->getHomeCourses();
+        return view('home', ['courses' => $courses]);
     }
 
     /**
@@ -35,18 +38,15 @@ class CourseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorecourseRequest $request)
-    {
-
-    }
+    public function store(StorecourseRequest $request) {}
 
     /**
      * Display the specified resource.
      */
     public function show(course $course)
     {
-        $course=$this->CourseServices->getCourse($course->id);
-        return view("courses.course_details", ['course'=>$course]);
+        $course = $this->CourseServices->getCourse($course->id);
+        return view("courses.course_details", ['course' => $course]);
     }
 
     /**
@@ -72,9 +72,9 @@ class CourseController extends Controller
     {
         //
     }
-    public function search(Request $request){
-        $courses = $this->CourseServices->searchCourse( $request);
+    public function search(Request $request)
+    {
+        $courses = $this->CourseServices->searchCourse($request);
         return $courses;
-
     }
 }

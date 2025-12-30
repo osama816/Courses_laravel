@@ -3,11 +3,12 @@
 namespace App\Services;
 use App\Models\User;
 use App\Models\course;
-use App\Http\Requests\StorecourseRequest;
-
 use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\StorecourseRequest;
 
 class CourseServices
 {
@@ -32,5 +33,15 @@ class CourseServices
         })->get();
         return $search;
     }
+    public function getHomeCourses()
+{
+    //return Cache::rememberForever('courses', function () {
+        return course::with(['instructor.user', 'category'])
+            ->latest()
+            ->take(6)
+            ->get();
+    //});
+}
+
 
 }
