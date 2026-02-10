@@ -2,69 +2,75 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use OpenAI\Laravel\Facades\OpenAI;
+use Illuminate\Support\Facades\Log;
 
 class LLMService
 {
-    protected $apiKey;
-    protected $apiUrl;
     protected $model;
 
     public function __construct()
     {
-        // للـ Claude API
-        $this->apiKey = env('ANTHROPIC_API_KEY');
-        $this->apiUrl = 'https://api.anthropic.com/v1/messages';
-        $this->model = 'claude-sonnet-4-20250514';
-
-        // أو للـ OpenAI
-        // $this->apiKey = config('services.openai.api_key');
-        // $this->apiUrl = 'https://api.openai.com/v1/chat/completions';
-        // $this->model = 'gpt-4';
+        $this->model = config('mcp.model', 'gpt-4o-mini');
     }
 
-    public function sendMessage($messages, $tools = [])
+    /**
+     * Send messages to OpenAI with optional tool definitions
+     */
+    public function sendMessage(array $messages, array $tools = [])
     {
-        $response = Http::withHeaders([
-            'x-api-key' => $this->apiKey,
-            'anthropic-version' => '2023-06-01',
-            'content-type' => 'application/json',
-        ])->post($this->apiUrl, [
-            'model' => $this->model,
-            'max_tokens' => 4096,
-            'messages' => $messages,
-            'tools' => $tools,
-        ]);
+        try {
+            $params = [
+                'model' => $this->model,
+                'messages' => $messages,
+            ];
 
-        return $response->json();
+            if (!empty($tools)) {
+                $params['tools'] = $tools;
+                $params['tool_choice'] = 'auto';
+            }
+
+            $response = OpenAI::chat()->create($params);
+
+            return $response->toArray();
+        } catch (\Exception $e) {
+            Log::error('OpenAI Error: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
-    public function chat($userMessage, $mcpTools = [])
+    /**
+     * High-level chat interface for MCP tools
+     */
+    public function chat(string $userMessage, array $mcpTools = [])
     {
         $messages = [
             ['role' => 'user', 'content' => $userMessage]
         ];
 
-        // تحويل MCP tools لصيغة LLM
-        $formattedTools = $this->formatMCPTools($mcpTools);
+        $formattedTools = $this->formatToolsForOpenAI($mcpTools);
 
-        $response = $this->sendMessage($messages, $formattedTools);
-
-        return $response;
+        return $this->sendMessage($messages, $formattedTools);
     }
 
-    protected function formatMCPTools($mcpTools)
+    /**
+     * Format MCP tools to OpenAI tool specification
+     */
+    protected function formatToolsForOpenAI(array $mcpTools): array
     {
         $formatted = [];
 
         foreach ($mcpTools as $tool) {
             $formatted[] = [
-                'name' => $tool['name'],
-                'description' => $tool['description'],
-                'input_schema' => $tool['inputSchema'] ?? [
-                    'type' => 'object',
-                    'properties' => [],
-                ]
+                'type' => 'function',
+                'function' => [
+                    'name' => $tool['name'],
+                    'description' => $tool['description'],
+                    'parameters' => $tool['inputSchema'] ?? [
+                        'type' => 'object',
+                        'properties' => (object)[],
+                    ],
+                ],
             ];
         }
 

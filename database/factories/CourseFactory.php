@@ -32,7 +32,7 @@ class CourseFactory extends Factory
                 'ar' => $fakerAr->realText(150),
             ],
 
-            'image_url' => $this->faker->imageUrl(640, 480, 'courses', true),
+            'image_url' => 'courses/course-placeholder.jpg',
             'price' => $this->faker->randomFloat(2, 20, 300),
             'level' => $this->faker->randomElement(['beginner', 'intermediate', 'advanced']),
             'total_seats' => $this->faker->numberBetween(10, 100),

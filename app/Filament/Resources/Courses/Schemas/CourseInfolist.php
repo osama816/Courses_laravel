@@ -12,7 +12,8 @@ class CourseInfolist
     {
         return $schema
             ->components([
-                ImageEntry::make('image_url'),
+                ImageEntry::make('image_url')
+                    ->disk('public'),
                 TextEntry::make('price'),
                 TextEntry::make('level'),
                 TextEntry::make('total_seats'),

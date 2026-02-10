@@ -13,56 +13,46 @@ class RolesAndPermissionsSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-   public function run()
-{
-    app()[PermissionRegistrar::class]->forgetCachedPermissions();
+    public function run()
+    {
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
     /*
     |--------------------------------------------------------------------------
     | Course Permissions
     |--------------------------------------------------------------------------
     */
-    Permission::create(['name' => 'view courses']);
-    Permission::create(['name' => 'create courses']);
-    Permission::create(['name' => 'edit courses']);
-    Permission::create(['name' => 'delete courses']);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Lessons Permissions
-    |--------------------------------------------------------------------------
-    */
-    // Permission::create(['name' => 'view lessons']);
-    // Permission::create(['name' => 'create lessons']);
-    // Permission::create(['name' => 'edit lessons']);
-    // Permission::create(['name' => 'delete lessons']);
+    Permission::create(['name' => 'view courses', 'guard_name' => 'web']);
+    Permission::create(['name' => 'create courses', 'guard_name' => 'web']);
+    Permission::create(['name' => 'edit courses', 'guard_name' => 'web']);
+    Permission::create(['name' => 'delete courses', 'guard_name' => 'web']);
 
     /*
     |--------------------------------------------------------------------------
     | Booking Permissions
     |--------------------------------------------------------------------------
     */
-    Permission::create(['name' => 'view bookings']);
-    Permission::create(['name' => 'create bookings']);
-    Permission::create(['name' => 'approve bookings']);
-    Permission::create(['name' => 'cancel bookings']);
-    Permission::create(['name' => 'update booking status']);
+    Permission::create(['name' => 'view bookings', 'guard_name' => 'web']);
+    Permission::create(['name' => 'create bookings', 'guard_name' => 'web']);
+    Permission::create(['name' => 'approve bookings', 'guard_name' => 'web']);
+    Permission::create(['name' => 'cancel bookings', 'guard_name' => 'web']);
+    Permission::create(['name' => 'update booking status', 'guard_name' => 'web']);
 
     /*
     |--------------------------------------------------------------------------
     | Payments Permissions
     |--------------------------------------------------------------------------
     */
-    Permission::create(['name' => 'view payments']);
-    Permission::create(['name' => 'refund payments']);
+    Permission::create(['name' => 'view payments', 'guard_name' => 'web']);
+    Permission::create(['name' => 'refund payments', 'guard_name' => 'web']);
 
     /*
     |--------------------------------------------------------------------------
     | User Permissions
     |--------------------------------------------------------------------------
     */
-    Permission::create(['name' => 'view users']);
-    Permission::create(['name' => 'edit users']);
+    Permission::create(['name' => 'view users', 'guard_name' => 'web']);
+    Permission::create(['name' => 'edit users', 'guard_name' => 'web']);
 
 
     /*
@@ -72,12 +62,11 @@ class RolesAndPermissionsSeeder extends Seeder
     */
 
     // Admin Role
-    $adminRole = Role::create(['name' => 'admin']);
+    app()[PermissionRegistrar::class]->forgetCachedPermissions();
+    $adminRole = Role::create(['name' => 'admin', 'guard_name' => 'web']);
     $adminRole->givePermissionTo([
         // Courses
         'view courses', 'create courses', 'edit courses', 'delete courses',
-        // Lessons
-       // 'view lessons', 'create lessons', 'edit lessons', 'delete lessons',
         // Bookings
         'view bookings', 'create bookings', 'approve bookings', 'cancel bookings', 'update booking status',
         // Payments
@@ -87,15 +76,11 @@ class RolesAndPermissionsSeeder extends Seeder
     ]);
 
     // Instructor Role
-    $instructorRole = Role::create(['name' => 'instructor']);
+    $instructorRole = Role::create(['name' => 'instructor', 'guard_name' => 'web']);
     $instructorRole->givePermissionTo([
         'view courses',
         'create courses',
         'edit courses',
-
-        // 'view lessons',
-        // 'create lessons',
-        // 'edit lessons',
 
         // Can see bookings for his courses
         'view bookings',
@@ -103,15 +88,17 @@ class RolesAndPermissionsSeeder extends Seeder
     ]);
 
     // Student Role
-    $studentRole = Role::create(['name' => 'student']);
+    $studentRole = Role::create(['name' => 'student', 'guard_name' => 'web']);
     $studentRole->givePermissionTo([
         'view courses',
-       // 'view lessons',
 
         // Booking permissions
         'create bookings',
         'view bookings',
         'cancel bookings',
+
+        // Payment permissions (to access payment gateway)
+        'view payments',
     ]);
 }}
 

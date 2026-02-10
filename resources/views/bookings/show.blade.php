@@ -1,385 +1,312 @@
-
-
 @extends('layouts.app_wep')
 
 @section('title', __('booking.booking_details') . ' #' . $booking->id . ' - CourseBook')
 
 @section('content')
-
-<main class="py-5 flex-grow-1">
-    <div class="container">
+<main class="min-h-screen bg-surface dark:bg-slate-900/50 py-12 sm:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {{-- Success Message --}}
         @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="mb-8 animate-fade-in-up">
+                <div class="flex items-center gap-4 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                    <i class="fa-solid fa-circle-check text-xl"></i>
+                    <p class="font-bold">{{ session('success') }}</p>
+                </div>
             </div>
         @endif
 
         {{-- Page Header --}}
-        <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-fade-in">
             <div>
-                <h1 class="h3 fw-bold mb-2">{{ __('booking.booking_details') }}</h1>
-                <p class="text-muted mb-0">{{ __('booking.booking_number') }}: <strong>#{{ $booking->id }}</strong></p>
+                <h1 class="text-3xl lg:text-4xl font-bold text-text-base mb-2 italic border-l-8 border-primary ps-6">
+                    {{ __('booking.booking_details') }}
+                </h1>
+                <p class="text-text-muted ps-6">{{ __('booking.booking_number') }}: <strong class="text-primary">#{{ $booking->id }}</strong></p>
             </div>
 
-            {{-- Status Badge --}}
-            <div>
+            <div class="ps-6 md:ps-0 flex items-center">
                 @if($booking->status === 'confirmed')
-                    <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fs-6">
-                        <i class="bi bi-check-circle me-1"></i>{{ __('booking.confirmed') }}
+                    <span class="flex items-center gap-2 px-6 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold rounded-2xl tracking-tight shadow-sm">
+                        <i class="fa-solid fa-circle-check"></i>
+                        {{ __('booking.confirmed') }}
                     </span>
                 @elseif($booking->status === 'pending')
-                    <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill fs-6">
-                        <i class="bi bi-clock me-1"></i>{{ __('booking.pending') }}
+                    <span class="flex items-center gap-2 px-6 py-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold rounded-2xl tracking-tight shadow-sm">
+                        <i class="fa-solid fa-clock"></i>
+                        {{ __('booking.pending') }}
                     </span>
                 @else
-                    <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fs-6">
-                        <i class="bi bi-x-circle me-1"></i>{{ __('booking.cancelled') }}
+                    <span class="flex items-center gap-2 px-6 py-3 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 font-bold rounded-2xl tracking-tight shadow-sm">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                        {{ __('booking.cancelled') }}
                     </span>
                 @endif
             </div>
         </div>
 
-        <div class="row g-4">
+        <div class="grid lg:grid-cols-12 gap-12 items-start">
             {{-- Main Content --}}
-            <div class="col-lg-8">
-                {{-- Booking Status Card --}}
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-header bg-white py-3 border-bottom">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="bi bi-info-circle me-2 text-primary"></i>{{ __('booking.booking_status') }}
-                        </h5>
+            <div class="lg:col-span-8 space-y-8 animate-fade-in-up delay-100">
+                
+                {{-- Booking Status & Timeline --}}
+                <div class="premium-card p-8">
+                    <div class="flex items-center gap-3 mb-10 pb-6 border-b border-slate-100 dark:border-slate-800">
+                        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <i class="fa-solid fa-route"></i>
+                        </div>
+                        <h5 class="text-xl font-bold text-text-base">{{ __('booking.booking_status') }}</h5>
                     </div>
-                    <div class="card-body p-4">
-                        {{-- Timeline --}}
-                        <div class="timeline">
-                            <div class="timeline-item {{ $booking->status === 'pending' || $booking->status === 'confirmed' || $booking->status === 'cancelled' ? 'active' : '' }}">
-                                <div class="timeline-icon bg-primary">
-                                    <i class="bi bi-calendar-check text-white"></i>
-                                </div>
-                                <div class="timeline-content">
-                                    <h6 class="fw-bold mb-1">{{ __('booking.booking_created') }}</h6>
-                                    <p class="text-muted mb-0 small">{{ $booking->created_at->format('d M Y, h:i A') }}</p>
-                                </div>
-                            </div>
 
-                            @if($booking->payment)
-                            <div class="timeline-item {{ $booking->payment->status === 'paid' ? 'active' : '' }}">
-                                <div class="timeline-icon {{ $booking->payment->status === 'paid' ? 'bg-success' : 'bg-secondary' }}">
-                                    <i class="bi bi-credit-card text-white"></i>
-                                </div>
-                                <div class="timeline-content">
-                                    <h6 class="fw-bold mb-1">{{ __('booking.payment_received') }}</h6>
-                                    <p class="text-muted mb-0 small">
-                                        @if($booking->payment->status === 'paid')
-                                            {{ $booking->payment->paid_at->format('d M Y, h:i A') }}
-                                        @else
-                                            {{ __('booking.pending_payment') }}
-                                        @endif
-                                    </p>
-                                </div>
-                            </div>
-                            @endif
+                    <div class="relative space-y-12">
+                        <!-- Vertical Line -->
+                        <div class="absolute left-6 top-2 bottom-2 w-0.5 bg-slate-100 dark:bg-slate-800"></div>
 
-                            <div class="timeline-item {{ $booking->status === 'confirmed' ? 'active' : '' }}">
-                                <div class="timeline-icon {{ $booking->status === 'confirmed' ? 'bg-success' : 'bg-secondary' }}">
-                                    <i class="bi bi-check-circle text-white"></i>
-                                </div>
-                                <div class="timeline-content">
-                                    <h6 class="fw-bold mb-1">{{ __('booking.booking_confirmed') }}</h6>
-                                    <p class="text-muted mb-0 small">
-                                        @if($booking->status === 'confirmed')
-                                            {{ $booking->updated_at->format('d M Y, h:i A') }}
-                                        @else
-                                            {{ __('booking.awaiting_confirmation') }}
-                                        @endif
-                                    </p>
-                                </div>
+                        <!-- Step 1: Created -->
+                        <div class="relative flex gap-8 pl-14">
+                            <div class="absolute left-3 -translate-x-1/2 w-6 h-6 rounded-full bg-primary flex items-center justify-center border-4 border-white dark:border-slate-900 z-10 shadow-sm shadow-primary/20">
+                                <i class="fa-solid fa-calendar-check text-[10px] text-white"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-bold text-text-base text-lg">{{ __('booking.booking_created') }}</h6>
+                                <p class="text-sm font-bold text-text-muted italic">{{ $booking->created_at->format('d M Y, h:i A') }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Payment -->
+                        @if($booking->payment)
+                        <div class="relative flex gap-8 pl-14">
+                            <div class="absolute left-3 -translate-x-1/2 w-6 h-6 rounded-full {{ $booking->payment->status === 'paid' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700' }} flex items-center justify-center border-4 border-white dark:border-slate-900 z-10">
+                                <i class="fa-solid fa-credit-card text-[10px] text-white"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-bold text-text-base text-lg">{{ __('booking.payment_received') }}</h6>
+                                <p class="text-sm font-bold text-text-muted italic">
+                                    @if($booking->payment->status === 'paid')
+                                        {{ $booking->payment->paid_at->format('d M Y, h:i A') }}
+                                    @else
+                                        {{ __('booking.pending_payment') }}
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Step 3: Confirmation -->
+                        <div class="relative flex gap-8 pl-14">
+                            <div class="absolute left-3 -translate-x-1/2 w-6 h-6 rounded-full {{ $booking->status === 'confirmed' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700' }} flex items-center justify-center border-4 border-white dark:border-slate-900 z-10">
+                                <i class="fa-solid fa-check-double text-[10px] text-white"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-bold text-text-base text-lg">{{ __('booking.booking_confirmed') }}</h6>
+                                <p class="text-sm font-bold text-text-muted italic">
+                                    @if($booking->status === 'confirmed')
+                                        {{ $booking->updated_at->format('d M Y, h:i A') }}
+                                    @else
+                                        {{ __('booking.awaiting_confirmation') }}
+                                    @endif
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- Course Details Card --}}
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-header bg-white py-3 border-bottom">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="bi bi-book me-2 text-primary"></i>{{ __('booking.course_details') }}
-                        </h5>
+                <div class="premium-card p-8 group">
+                    <div class="flex items-center gap-3 mb-8 pb-6 border-b border-slate-100 dark:border-slate-800">
+                        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <i class="fa-solid fa-book-bookmark"></i>
+                        </div>
+                        <h5 class="text-xl font-bold text-text-base">{{ __('booking.course_details') }}</h5>
                     </div>
-                    <div class="card-body p-4">
-                        <div class="row align-items-center">
-                            <div class="col-md-3">
-                                <img src="{{ asset('storage/' . $booking->course->image_url) }}"
-                                     alt="{{ $booking->course->title }}"
-                                     class="img-fluid rounded-3 shadow-sm"
-                                     style="width: 100%; height: 150px; object-fit: cover;">
+
+                    <div class="flex flex-col md:flex-row gap-8 items-start">
+                        <div class="w-full md:w-48 aspect-video md:aspect-square overflow-hidden rounded-[2rem] shadow-lg group-hover:shadow-primary/20 transition-all duration-500">
+                            <img src="{{ asset('storage/' . $booking->course->image_url) }}"
+                                 alt="{{ $booking->course->title }}"
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        </div>
+                        
+                        <div class="flex-1 space-y-6">
+                            <div class="flex items-start justify-between gap-4">
+                                <h4 class="text-2xl font-bold text-text-base leading-tight">{{ $booking->course->title }}</h4>
+                                <div class="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 text-amber-500 text-xs font-bold rounded-lg border border-amber-500/20">
+                                    <i class="fa-solid fa-star"></i>
+                                    {{ number_format($booking->course->rating, 1) }}
+                                </div>
                             </div>
-                            <div class="col-md-9 mt-3 mt-md-0">
-                                <h4 class="fw-bold mb-3">{{ $booking->course->title }}</h4>
-                                <div class="row g-3">
-                                    <div class="col-sm-6">
-                                        <div class="d-flex align-items-center text-muted">
-                                            <i class="bi bi-person me-2"></i>
-                                            <div>
-                                                <small class="d-block">{{ __('booking.instructor') }}</small>
-                                                <strong class="text-dark">{{ $booking->course->instructor->user->name }}</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <div class="d-flex align-items-center text-muted">
-                                            <i class="bi bi-speedometer2 me-2"></i>
-                                            <div>
-                                                <small class="d-block">{{ __('booking.level') }}</small>
-                                                <span class="badge bg-info-subtle text-info">{{ $booking->course->level }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <div class="d-flex align-items-center text-muted">
-                                            <i class="bi bi-clock me-2"></i>
-                                            <div>
-                                                <small class="d-block">{{ __('booking.duration') }}</small>
-                                                <strong class="text-dark">{{ $booking->course->duration }} {{ __('booking.hours') }}</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <div class="d-flex align-items-center text-muted">
-                                            <i class="bi bi-star-fill text-warning me-2"></i>
-                                            <div>
-                                                <small class="d-block">{{ __('booking.rating') }}</small>
-                                                <strong class="text-dark">{{ number_format($booking->course->rating, 1) }}/5</strong>
-                                            </div>
-                                        </div>
+
+                            <div class="grid sm:grid-cols-2 gap-4">
+                                <div class="flex items-center gap-3 p-4 rounded-2xl bg-surface dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                                    <i class="fa-solid fa-user-instructor text-primary/60"></i>
+                                    <div>
+                                        <span class="block text-[10px] uppercase font-bold text-text-muted tracking-widest">{{ __('booking.instructor') }}</span>
+                                        <span class="text-sm font-bold text-text-base">{{ $booking->course->instructor->user->name }}</span>
                                     </div>
                                 </div>
-                                <div class="mt-3">
-                                    <a href="{{ route('courses.show', $booking->course->id) }}"
-                                       class="btn btn-outline-primary btn-sm rounded-pill">
-                                        <i class="bi bi-eye me-1"></i>{{ __('booking.view_course') }}
-                                    </a>
+                                <div class="flex items-center gap-3 p-4 rounded-2xl bg-surface dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                                    <i class="fa-solid fa-signal text-primary/60"></i>
+                                    <div>
+                                        <span class="block text-[10px] uppercase font-bold text-text-muted tracking-widest">{{ __('booking.level') }}</span>
+                                        <span class="text-sm font-bold text-text-base">{{ $booking->course->level }}</span>
+                                    </div>
                                 </div>
+                                <div class="flex items-center gap-3 p-4 rounded-2xl bg-surface dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                                    <i class="fa-solid fa-clock-rotate-left text-primary/60"></i>
+                                    <div>
+                                        <span class="block text-[10px] uppercase font-bold text-text-muted tracking-widest">{{ __('booking.duration') }}</span>
+                                        <span class="text-sm font-bold text-text-base">{{ $booking->course->duration }} {{ __('booking.hours') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-4">
+                                <a href="{{ route('courses.show', $booking->course->id) }}"
+                                   class="inline-flex items-center gap-2 group/btn text-sm font-bold text-primary hover:text-primary-dark transition-colors italic">
+                                   {{ __('booking.view_course') }}
+                                   <i class="fa-solid fa-circle-chevron-right transition-transform group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Payment Information (if exists) --}}
+                {{-- Payment Information --}}
                 @if($booking->payment)
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-header bg-white py-3 border-bottom">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="bi bi-credit-card me-2 text-primary"></i>{{ __('booking.payment_information') }}
-                        </h5>
+                <div class="premium-card p-8">
+                    <div class="flex items-center gap-3 mb-8 pb-6 border-b border-slate-100 dark:border-slate-800">
+                        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
+                        <h5 class="text-xl font-bold text-text-base">{{ __('booking.payment_information') }}</h5>
                     </div>
-                    <div class="card-body p-4">
-                        <dl class="row mb-0">
-                            <dt class="col-sm-4 text-muted mb-2">{{ __('booking.payment_method') }}</dt>
-                            <dd class="col-sm-8 mb-2">
-                                <span class="badge bg-primary-subtle text-primary text-capitalize">
-                                    {{ $booking->payment->payment_method }}
+
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div>
+                            <span class="block text-[10px] uppercase font-bold text-text-muted tracking-widest mb-2 italic">{{ __('booking.payment_method') }}</span>
+                            <span class="px-4 py-2 bg-primary/5 text-primary font-bold rounded-xl border border-primary/10 text-sm uppercase">
+                                {{ $booking->payment->payment_method }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] uppercase font-bold text-text-muted tracking-widest mb-2 italic">{{ __('booking.transaction_id') }}</span>
+                            <code class="text-xs font-mono bg-slate-50 dark:bg-slate-800 p-2 rounded-lg text-slate-500 dark:text-slate-400 block break-all">
+                                {{ $booking->payment->transaction_id }}
+                            </code>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] uppercase font-bold text-text-muted tracking-widest mb-2 italic">{{ __('booking.amount_paid') }}</span>
+                            <span class="text-xl font-bold text-emerald-500 italic">{{ number_format($booking->payment->amount, 2) }} SAR</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] uppercase font-bold text-text-muted tracking-widest mb-2 italic">{{ __('booking.payment_status') }}</span>
+                            @if($booking->payment->status === 'paid')
+                                <span class="text-xs font-bold text-emerald-600 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-badge-check"></i>
+                                    {{ __('booking.paid') }}
                                 </span>
-                            </dd>
-
-                            <dt class="col-sm-4 text-muted mb-2">{{ __('booking.transaction_id') }}</dt>
-                            <dd class="col-sm-8 mb-2">
-                                <code class="text-muted">{{ $booking->payment->transaction_id }}</code>
-                            </dd>
-
-                            <dt class="col-sm-4 text-muted mb-2">{{ __('booking.amount_paid') }}</dt>
-                            <dd class="col-sm-8 mb-2">
-                                <strong class="text-success fs-5">${{ number_format($booking->payment->amount, 2) }}</strong>
-                            </dd>
-
-                            <dt class="col-sm-4 text-muted mb-2">{{ __('booking.payment_status') }}</dt>
-                            <dd class="col-sm-8 mb-2">
-                                @if($booking->payment->status === 'paid')
-                                    <span class="badge bg-success-subtle text-success">
-                                        <i class="bi bi-check-circle me-1"></i>{{ __('booking.paid') }}
-                                    </span>
-                                @else
-                                    <span class="badge bg-warning-subtle text-warning">
-                                        <i class="bi bi-clock me-1"></i>{{ __('booking.pending') }}
-                                    </span>
-                                @endif
-                            </dd>
-
-                            <dt class="col-sm-4 text-muted mb-0">{{ __('booking.payment_date') }}</dt>
-                            <dd class="col-sm-8 mb-0">
+                            @else
+                                <span class="text-xs font-bold text-amber-500 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-hourglass-start"></i>
+                                    {{ __('booking.pending') }}
+                                </span>
+                            @endif
+                        </div>
+                        <div>
+                            <span class="block text-[10px] uppercase font-bold text-text-muted tracking-widest mb-2 italic">{{ __('booking.payment_date') }}</span>
+                            <span class="text-sm font-bold text-text-base italic">
                                 {{ $booking->payment->paid_at ? $booking->payment->paid_at->format('d M Y, h:i A') : '-' }}
-                            </dd>
-                        </dl>
+                            </span>
+                        </div>
                     </div>
                 </div>
                 @endif
             </div>
 
             {{-- Sidebar --}}
-            <div class="col-lg-4">
-                {{-- Summary Card --}}
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-header bg-gradient text-white py-3"
-                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="bi bi-receipt me-2"></i>{{ __('booking.summary') }}
+            <div class="lg:col-span-4 space-y-8 sticky top-24 animate-fade-in-up delay-200">
+                {{-- Order Summary --}}
+                <div class="premium-card overflow-hidden">
+                    <div class="bg-gradient-to-r from-primary/90 to-primary p-6 text-white text-center">
+                        <h5 class="text-lg font-bold flex items-center justify-center gap-3">
+                            <i class="fa-solid fa-receipt opacity-80"></i>
+                            {{ __('booking.summary') }}
                         </h5>
                     </div>
-                    <div class="card-body p-4">
-                        <dl class="row mb-0">
-                            <dt class="col-6 text-muted mb-3">{{ __('booking.booking_date') }}</dt>
-                            <dd class="col-6 text-end mb-3">{{ $booking->created_at->format('d M Y') }}</dd>
-
-                            <dt class="col-6 text-muted mb-3">{{ __('booking.course_price') }}</dt>
-                            <dd class="col-6 text-end mb-3">${{ number_format($booking->course->price, 2) }}</dd>
-
-                            <hr class="my-2">
-
-                            <dt class="col-6 fw-bold fs-5 mb-0">{{ __('booking.total') }}</dt>
-                            <dd class="col-6 text-end fw-bold text-success fs-4 mb-0">
-                                ${{ number_format($booking->course->price, 2) }}
-                            </dd>
-                        </dl>
-                    </div>
-                </div>
-
-                {{-- Actions Card --}}
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-body p-4">
-                        <h6 class="fw-bold mb-3">
-                            <i class="bi bi-gear me-2"></i>{{ __('booking.actions') }}
-                        </h6>
-
-                        <div class="d-grid gap-2">
-                            {{-- Start Course (if confirmed) --}}
-                            @if($booking->status === 'confirmed')
-                                <a href="{{ route('courses.show', $booking->course->id) }}"
-                                   class="btn btn-primary rounded-pill">
-                                    <i class="bi bi-play-circle me-2"></i>{{ __('booking.start_course') }}
-                                </a>
-                            @endif
-
-                            {{-- Download Invoice (if paid) --}}
-                            @if($booking->payment && $booking->payment->status === 'paid')
-                                <a href="#" class="btn btn-outline-secondary rounded-pill">
-                                    <i class="bi bi-download me-2"></i>{{ __('booking.download_invoice') }}
-                                </a>
-                            @endif
-
-                            {{-- Cancel Booking (if pending) --}}
-                            @if($booking->status === 'pending')
-                                <form action="{{ route('bookings.destroy', $booking->id) }}"
-                                      method="POST"
-                                      >
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger rounded-pill w-100">
-                                        <i class="bi bi-x-circle me-2"></i>{{ __('booking.cancel_booking') }}
-                                    </button>
-                                </form>
-                            @endif
-
-                            {{-- Back to Bookings --}}
-                            <a href="{{ route('bookings.index') }}"
-                               class="btn btn-outline-secondary rounded-pill">
-                                <i class="bi bi-arrow-left me-2"></i>{{ __('booking.back_to_bookings') }}
-                            </a>
+                    <div class="p-8 space-y-6">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center italic">
+                                <span class="text-sm font-bold text-text-muted">{{ __('booking.booking_date') }}</span>
+                                <span class="text-sm font-bold text-text-base">{{ $booking->created_at->format('d M Y') }}</span>
+                            </div>
+                            <div class="flex justify-between items-center italic">
+                                <span class="text-sm font-bold text-text-muted">{{ __('booking.course_price') }}</span>
+                                <span class="text-sm font-bold text-text-base italic">{{ number_format($booking->course->price, 2) }} SAR</span>
+                            </div>
+                        </div>
+                        <div class="pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <div class="flex justify-between items-center italic">
+                                <span class="text-lg font-bold text-text-base">{{ __('booking.total') }}</span>
+                                <span class="text-2xl font-bold text-emerald-500">{{ number_format($booking->course->price, 2) }} SAR</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Help Card --}}
-                <div class="card border-0 bg-light">
-                    <div class="card-body p-4 text-center">
-                        <i class="bi bi-question-circle text-primary fs-1 mb-3"></i>
-                        <h6 class="fw-bold mb-2">{{ __('booking.need_help') }}</h6>
-                        <p class="text-muted small mb-3">{{ __('booking.contact_support_text') }}</p>
-                        <a href="#" class="btn btn-sm btn-primary rounded-pill">
-                            <i class="bi bi-headset me-2"></i>{{ __('booking.contact_support') }}
+                {{-- Action Buttons --}}
+                <div class="premium-card p-8">
+                    <h6 class="text-xs font-bold text-text-muted uppercase tracking-widest mb-6 italic">{{ __('booking.actions') }}</h6>
+                    <div class="flex flex-col gap-4">
+                        @if($booking->status === 'confirmed')
+                            <a href="{{ route('courses.show', $booking->course->id) }}"
+                               class="btn-premium w-full flex items-center justify-center gap-3 italic">
+                                <i class="fa-solid fa-circle-play"></i>
+                                {{ __('booking.start_course') }}
+                            </a>
+                        @endif
+
+                        @if($booking->payment && $booking->payment->status === 'paid' && $booking->invoice)
+                            <a href="{{ route('invoice.show', $booking->invoice->id) }}" class="w-full py-4 text-sm font-bold text-text-base bg-surface dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl flex items-center justify-center gap-3 hover:border-primary transition-all duration-300">
+                                <i class="fa-solid fa-file-invoice text-rose-500"></i>
+                                {{ __('booking.invoice') }}
+                            </a>
+                        @endif
+
+                        @if($booking->status === 'pending')
+                            <form action="{{ route('bookings.destroy', $booking->id) }}"
+                                  method="POST" 
+                                  class="w-full">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="w-full py-4 text-sm font-bold text-rose-500 bg-rose-500/5 border-2 border-rose-500/10 rounded-2xl flex items-center justify-center gap-3 hover:bg-rose-500 hover:text-white transition-all duration-300">
+                                    <i class="fa-solid fa-ban"></i>
+                                    {{ __('booking.cancel_booking') }}
+                                </button>
+                            </form>
+                        @endif
+
+                        <a href="{{ route('bookings.index') }}"
+                           class="w-full py-4 text-sm font-bold text-text-muted text-center hover:text-primary transition-colors flex items-center justify-center gap-2 group">
+                            <i class="fa-solid fa-arrow-left transition-transform group-hover:-translate-x-1 rtl:group-hover:translate-x-1"></i>
+                            {{ __('booking.back_to_bookings') }}
                         </a>
                     </div>
+                </div>
+
+                {{-- Help Support --}}
+                <div class="premium-card p-8 text-center space-y-6 bg-gradient-to-b from-primary/5 to-transparent">
+                    <div class="w-16 h-16 rounded-[1.5rem] bg-white dark:bg-slate-800 shadow-xl shadow-primary/10 flex items-center justify-center text-primary mx-auto">
+                        <i class="fa-solid fa-headset text-2xl animate-bounce-slow"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-lg font-bold text-text-base mb-2 italic text-center">{{ __('booking.need_help') }}</h6>
+                        <p class="text-xs font-medium text-text-muted leading-relaxed italic text-center">{{ __('booking.contact_support_text') }}</p>
+                    </div>
+                    <a href="#" class="inline-flex py-3 px-8 text-sm font-bold text-white bg-slate-900 dark:bg-slate-700 rounded-xl hover:scale-105 transition-transform">
+                        {{ __('booking.contact_support') }}
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </main>
-
 @endsection
-
-@push('styles')
-<style>
-    /* Timeline Styles */
-    .timeline {
-        position: relative;
-        padding-left: 40px;
-    }
-
-    .timeline::before {
-        content: '';
-        position: absolute;
-        left: 17px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #e5e7eb;
-    }
-
-    .timeline-item {
-        position: relative;
-        padding-bottom: 2rem;
-    }
-
-    .timeline-item:last-child {
-        padding-bottom: 0;
-    }
-
-    .timeline-icon {
-        position: absolute;
-        left: -40px;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 3px solid white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        z-index: 1;
-    }
-
-    .timeline-item.active .timeline-icon {
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        50% {
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4), 0 0 0 8px rgba(102, 126, 234, 0.1);
-        }
-    }
-
-    .timeline-content {
-        padding-left: 0;
-    }
-
-    /* Breadcrumb RTL Support */
-    [dir="rtl"] .breadcrumb-item + .breadcrumb-item::before {
-        float: right;
-        padding-right: 0;
-        padding-left: 0.5rem;
-    }
-
-    /* Card hover effect */
-    .card {
-        transition: transform 0.2s ease;
-    }
-
-    .card:hover {
-        transform: translateY(-2px);
-    }
-</style>
-@endpush

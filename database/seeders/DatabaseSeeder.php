@@ -22,12 +22,12 @@ class DatabaseSeeder extends Seeder
         //     'user_id' => User::inRandomOrder()->first()->id
         //]);
         $this->call([
-            // RolesAndPermissionsSeeder::class,
+            RolesAndPermissionsSeeder::class,
             UserSeeder::class,
-          //  CourseSeeder::class,
+            CategorySeeder::class,
             InstructorSeeder::class,
-           // CategorySeeder::class,
-
+            CourseSeeder::class,
+           // BookingSeeder::class,
         ]);
     }
 }

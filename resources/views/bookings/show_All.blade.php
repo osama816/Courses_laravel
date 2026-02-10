@@ -3,237 +3,201 @@
 @section('title', __('booking.my_bookings') . ' - CourseBook')
 
 @section('content')
-
-<main class="py-5 flex-grow-1">
-    <div class="container">
+<main class="min-h-screen bg-surface dark:bg-slate-900/50 py-12 sm:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {{-- Page Header --}}
-        <div class="row align-items-center mb-4">
-            <div class="col-md-8">
-                <h1 class="h3 fw-bold mb-2">
-                    <i class="bi bi-calendar-check me-2 text-primary"></i>{{ __('booking.my_bookings') }}
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-fade-in text-center md:text-start">
+            <div>
+                <h1 class="text-3xl lg:text-4xl font-bold text-text-base mb-2 italic border-l-8 border-primary ps-6 inline-block md:block">
+                    {{ __('booking.my_bookings') }}
                 </h1>
-                <p class="text-muted mb-0">{{ __('booking.manage_bookings') }}</p>
+                <p class="text-text-muted ps-6">{{ __('booking.manage_bookings') }}</p>
             </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <a href="{{ route('courses.index') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
-                    <i class="bi bi-plus-circle me-2"></i>{{ __('booking.book_new_course') }}
-                </a>
-            </div>
+            
+            <a href="{{ route('courses.index') }}" class="btn-premium px-8 py-4 shadow-xl shadow-primary/20 flex items-center justify-center gap-3 mx-auto md:mx-0">
+                <i class="fa-solid fa-circle-plus"></i>
+                {{ __('booking.book_new_course') }}
+            </a>
         </div>
 
-        {{-- Statistics Cards --}}
-        <div class="row g-3 mb-4" >
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-4 bg-success-subtle">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="bg-success  rounded-circle p-3" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; color: var(--text);">
-                                    <i class="bi bi-check-circle fs-4"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="text-muted mb-1" style="color: var(--text);">{{ __('booking.confirmed') }}</h6>
-                                <h3 class="mb-0 fw-bold">{{ $bookings->where('status', 'confirmed')->count() }}</h3>
-                            </div>
-                        </div>
-                    </div>
+        {{-- Statistics Grid --}}
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 animate-fade-in-up delay-100">
+            <!-- Confirmed Stats -->
+            <div class="premium-card p-6 flex items-center gap-6 overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors"></div>
+                <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <i class="fa-solid fa-circle-check text-2xl group-hover:scale-110 transition-transform"></i>
+                </div>
+                <div>
+                    <span class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-1 italic">{{ __('booking.confirmed') }}</span>
+                    <span class="text-3xl font-bold text-text-base tracking-tight font-outfit">{{ $bookings->where('status', 'confirmed')->count() }}</span>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-4 bg-warning-subtle">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="bg-warning rounded-circle p-3" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="bi bi-clock-history fs-4"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="text-muted mb-1">{{ __('booking.pending') }}</h6>
-                                <h3 class="mb-0 fw-bold">{{ $bookings->where('status', 'pending')->count() }}</h3>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Pending Stats -->
+            <div class="premium-card p-6 flex items-center gap-6 overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-colors"></div>
+                <div class="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                    <i class="fa-solid fa-clock-rotate-left text-2xl group-hover:scale-110 transition-transform"></i>
+                </div>
+                <div>
+                    <span class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-1 italic">{{ __('booking.pending') }}</span>
+                    <span class="text-3xl font-bold text-text-base tracking-tight font-outfit">{{ $bookings->where('status', 'pending')->count() }}</span>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-4 bg-primary-subtle">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="bg-primary  rounded-circle p-3" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="bi bi-book fs-4"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="text-muted mb-1">{{ __('booking.total_bookings') }}</h6>
-                                <h3 class="mb-0 fw-bold">{{ $bookings->count() }}</h3>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Total Stats -->
+            <div class="premium-card p-6 flex items-center gap-6 overflow-hidden group sm:col-span-2 lg:col-span-1">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors"></div>
+                <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                    <i class="fa-solid fa-book-bookmark text-2xl group-hover:scale-110 transition-transform"></i>
+                </div>
+                <div>
+                    <span class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-1 italic">{{ __('booking.total_bookings') }}</span>
+                    <span class="text-3xl font-bold text-text-base tracking-tight font-outfit">{{ $bookings->count() }}</span>
                 </div>
             </div>
         </div>
-
 
         @if($bookings->isEmpty())
             {{-- Empty State --}}
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-body p-5 text-center">
-                    <div class="empty-state-icon mb-4">
-                        <i class="bi bi-inbox text-muted" style="font-size: 5rem; opacity: 0.3;"></i>
-                    </div>
-                    <h4 class="fw-bold mb-2">{{ __('booking.no_bookings_yet') }}</h4>
-                    <p class="text-muted mb-4">{{ __('booking.start_booking_text') }}</p>
-                    <a href="{{ route('courses.index') }}" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm">
-                        <i class="bi bi-search me-2"></i>{{ __('booking.browse_courses') }}
-                    </a>
+            <div class="premium-card p-16 text-center animate-fade-in-up delay-200">
+                <div class="w-24 h-24 rounded-[2rem] bg-slate-50 dark:bg-slate-800 shadow-inner flex items-center justify-center mx-auto mb-8 text-slate-300 dark:text-slate-600">
+                    <i class="fa-solid fa-folder-open text-4xl animate-bounce-slow"></i>
                 </div>
+                <h4 class="text-2xl font-bold text-text-base mb-3 italic">{{ __('booking.no_bookings_yet') }}</h4>
+                <p class="text-text-muted max-w-md mx-auto mb-10 italic leading-relaxed">{{ __('booking.start_booking_text') }}</p>
+                <a href="{{ route('courses.index') }}" class="btn-premium px-10 py-4 shadow-xl shadow-primary/10 italic">
+                    <i class="fa-solid fa-magnifying-glass me-2"></i>
+                    {{ __('booking.browse_courses') }}
+                </a>
             </div>
         @else
             {{-- Bookings List --}}
-            <div class="row g-4" id="bookingsList">
+            <div class="space-y-6 animate-fade-in-up delay-200" id="bookingsList">
                 @foreach($bookings as $booking)
-                <div class="col-12 booking-item"
+                <div class="booking-item group" 
                      data-status="{{ $booking->status }}"
                      data-title="{{ strtolower($booking->course->title) }}"
                      data-date="{{ $booking->created_at->timestamp }}">
-                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden hover-lift">
-                        <div class="row g-0">
+                    
+                    <div class="premium-card overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1 relative">
+                        <!-- Left Status Ribbon (Logical RTL support) -->
+                        <div class="absolute top-0 start-0 bottom-0 w-2 
+                            @if($booking->status === 'confirmed') bg-emerald-500 @elseif($booking->status === 'pending') bg-amber-500 @else bg-rose-500 @endif">
+                        </div>
+
+                        <div class="flex flex-col lg:flex-row">
                             {{-- Course Image --}}
-                            <div class="col-md-3 position-relative">
+                            <div class="lg:w-72 relative shrink-0 overflow-hidden">
                                 <img src="{{ asset('storage/' . $booking->course->image_url) }}"
                                      alt="{{ $booking->course->title }}"
-                                     class="img-fluid w-100 h-100"
-                                     style="object-fit: cover; min-height: 200px;">
-                                {{-- Status Badge on Image --}}
-                                <div class="position-absolute top-0 start-0 m-3">
+                                     class="w-full h-full object-cover min-h-[200px] group-hover:scale-110 transition-transform duration-700">
+                                
+                                {{-- Floating Badge --}}
+                                <div class="absolute top-4 start-4">
                                     @if($booking->status === 'confirmed')
-                                        <span class="badge bg-success px-3 py-2 rounded-pill shadow">
-                                            <i class="bi bi-check-circle me-1"></i>{{ __('booking.confirmed') }}
+                                        <span class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white text-[10px] font-bold rounded-lg shadow-lg">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                            {{ __('booking.confirmed') }}
                                         </span>
                                     @elseif($booking->status === 'pending')
-                                        <span class="badge bg-warning px-3 py-2 rounded-pill shadow">
-                                            <i class="bi bi-clock me-1"></i>{{ __('booking.pending') }}
+                                        <span class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-white text-[10px] font-bold rounded-lg shadow-lg">
+                                            <i class="fa-solid fa-clock"></i>
+                                            {{ __('booking.pending') }}
                                         </span>
                                     @else
-                                        <span class="badge bg-danger px-3 py-2 rounded-pill shadow">
-                                            <i class="bi bi-x-circle me-1"></i>{{ __('booking.cancelled') }}
+                                        <span class="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500 text-white text-[10px] font-bold rounded-lg shadow-lg">
+                                            <i class="fa-solid fa-circle-xmark"></i>
+                                            {{ __('booking.cancelled') }}
                                         </span>
                                     @endif
                                 </div>
                             </div>
 
-                            {{-- Booking Details --}}
-                            <div class="col-md-9">
-                                <div class="card-body p-4 h-100 d-flex flex-column">
-                                    {{-- Header --}}
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex align-items-center gap-2 mb-2">
-                                                <span class="badge bg-secondary-subtle text-secondary">
-                                                    #{{ $booking->id }}
-                                                </span>
-                                                @if($booking->payment && $booking->payment->status === 'paid')
-                                                    <span class="badge bg-success-subtle text-success">
-                                                        <i class="bi bi-credit-card me-1"></i>{{ __('booking.paid') }}
-                                                    </span>
-                                                @endif
-                                            </div>
-                                            <h5 class="fw-bold mb-2">{{ $booking->course->title }}</h5>
-                                            <p class="text-muted mb-0 small">
-                                                <i class="bi bi-person me-1"></i>{{ $booking->course->instructor->user->name }}
-                                                <span class="mx-2">•</span>
-                                                <i class="bi bi-star-fill text-warning me-1"></i>{{ number_format($booking->course->rating, 1) }}
-                                            </p>
+                            {{-- Booking Content --}}
+                            <div class="flex-1 p-8 sm:p-10">
+                                <div class="flex flex-col h-full">
+                                    {{-- Header info --}}
+                                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                                        <span class="text-[10px] font-bold py-1 px-3 bg-slate-100 dark:bg-slate-800 text-text-muted rounded-full">
+                                            #{{ $booking->id }}
+                                        </span>
+                                        @if($booking->payment && $booking->payment->status === 'paid')
+                                            <span class="text-[10px] font-bold py-1 px-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center gap-1.5">
+                                                <i class="fa-solid fa-badge-check"></i>
+                                                {{ __('booking.paid') }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <h5 class="text-2xl font-bold text-text-base mb-3 leading-tight italic">{{ $booking->course->title }}</h5>
+                                    
+                                    <div class="flex items-center gap-4 text-xs font-bold text-text-muted mb-8 italic">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-solid fa-user-instructor text-primary/60"></i>
+                                            {{ $booking->course->instructor->user->name }}
+                                        </div>
+                                        <div class="flex items-center gap-1.5 text-amber-500">
+                                            <i class="fa-solid fa-star"></i>
+                                            {{ number_format($booking->course->rating, 1) }}
                                         </div>
                                     </div>
 
-                                    {{-- Info Grid --}}
-                                    <div class="row g-3 mb-4">
-                                        <div class="col-sm-3">
-                                            <div class="d-flex align-items-center">
-                                                <div class="icon-wrapper bg-primary-subtle text-primary rounded p-2 me-2">
-                                                    <i class="bi bi-calendar3"></i>
-                                                </div>
-                                                <div>
-                                                    <small class="text-muted d-block">{{ __('booking.booked_on') }}</small>
-                                                    <strong class="small">{{ $booking->created_at->format('d M Y') }}</strong>
-                                                </div>
-                                            </div>
+                                    {{-- Stats Grid --}}
+                                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8 pt-8 border-t border-slate-50 dark:border-slate-800">
+                                        <div class="space-y-1">
+                                            <span class="block text-[10px] uppercase font-bold text-text-muted tracking-widest">{{ __('booking.booked_on') }}</span>
+                                            <span class="block text-sm font-bold text-text-base italic">{{ $booking->created_at->format('d M Y') }}</span>
                                         </div>
-                                        <div class="col-sm-3">
-                                            <div class="d-flex align-items-center">
-                                                <div class="icon-wrapper bg-success-subtle text-success rounded p-2 me-2">
-                                                    <i class="bi bi-cash"></i>
-                                                </div>
-                                                <div>
-                                                    <small class="text-muted d-block">{{ __('booking.price') }}</small>
-                                                    <strong class="small text-success">${{ number_format($booking->course->price, 2) }}</strong>
-                                                </div>
-                                            </div>
+                                        <div class="space-y-1 text-center sm:text-start">
+                                            <span class="block text-[10px] uppercase font-bold text-text-muted tracking-widest">{{ __('booking.price') }}</span>
+                                            <span class="block text-sm font-bold text-emerald-500 italic">{{ number_format($booking->course->price, 2) }} SAR</span>
                                         </div>
-                                        <div class="col-sm-3">
-                                            <div class="d-flex align-items-center">
-                                                <div class="icon-wrapper bg-info-subtle text-info rounded p-2 me-2">
-                                                    <i class="bi bi-speedometer2"></i>
-                                                </div>
-                                                <div>
-                                                    <small class="text-muted d-block">{{ __('booking.level') }}</small>
-                                                    <span class="badge bg-info-subtle text-info small">{{ $booking->course->level }}</span>
-                                                </div>
-                                            </div>
+                                        <div class="space-y-1">
+                                            <span class="block text-[10px] uppercase font-bold text-text-muted tracking-widest">{{ __('booking.level') }}</span>
+                                            <span class="block text-sm font-bold text-text-base italic">{{ $booking->course->level }}</span>
                                         </div>
-                                        <div class="col-sm-3">
-                                            <div class="d-flex align-items-center">
-                                                <div class="icon-wrapper bg-warning-subtle text-warning rounded p-2 me-2">
-                                                    <i class="bi bi-clock"></i>
-                                                </div>
-                                                <div>
-                                                    <small class="text-muted d-block">{{ __('booking.duration') }}</small>
-                                                    <strong class="small">{{ $booking->course->duration }}h</strong>
-                                                </div>
-                                            </div>
+                                        <div class="space-y-1 text-center sm:text-start">
+                                            <span class="block text-[10px] uppercase font-bold text-text-muted tracking-widest">{{ __('booking.duration') }}</span>
+                                            <span class="block text-sm font-bold text-text-base italic">{{ $booking->course->duration }}h</span>
                                         </div>
                                     </div>
 
                                     {{-- Actions --}}
-                                    <div class="mt-auto">
-                                        <div class="d-flex gap-2 flex-wrap">
-                                            <a href="{{ route('bookings.show', $booking->id) }}"
-                                               class="btn btn-primary btn-sm rounded-pill px-3">
-                                                <i class="bi bi-eye me-1"></i>{{ __('booking.view_details') }}
+                                    <div class="mt-auto pt-6 flex flex-wrap gap-4 border-t border-slate-50 dark:border-slate-800">
+                                        <a href="{{ route('bookings.show', $booking->id) }}"
+                                           class="btn-premium px-6 py-3 text-xs italic">
+                                            <i class="fa-solid fa-eye me-2"></i>
+                                            {{ __('booking.view_details') }}
+                                        </a>
+
+                                        @if($booking->status === 'confirmed')
+                                            <a href="{{ route('courses.show', $booking->course->id) }}"
+                                               class="px-6 py-3 bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform italic flex items-center justify-center gap-2">
+                                                <i class="fa-solid fa-circle-play"></i>
+                                                {{ __('booking.start_course') }}
                                             </a>
+                                        @endif
+                                        @if($booking->payment && $booking->payment->status === 'paid' && $booking->invoice)
+                                            <a href="{{ route('invoice.show', $booking->invoice->id) }}" class="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-text-base text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary transition-all italic flex items-center justify-center gap-2">
+                                                <i class="fa-solid fa-file-invoice text-rose-500"></i>
+                                                {{ __('booking.invoice') }}
+                                            </a>
+                                        @endif
 
-                                            @if($booking->status === 'confirmed')
-                                                <a href="{{ route('courses.show', $booking->course->id) }}"
-                                                   class="btn btn-success btn-sm rounded-pill px-3">
-                                                    <i class="bi bi-play-circle me-1"></i>{{ __('booking.start_course') }}
-                                                </a>
-                                            @endif
-
-                                            @if($booking->payment && $booking->payment->status === 'paid')
-                                                <a href="#" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                                                    <i class="bi bi-download me-1"></i>{{ __('booking.invoice') }}
-                                                </a>
-                                            @endif
-
-                                            @if($booking->status === 'pending')
-                                                <form action="{{ route('bookings.destroy', $booking->id) }}"
-                                                      method="POST"
-                                                      class="d-inline"
-                                                      >
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-                                                        <i class="bi bi-x-circle me-1"></i>{{ __('booking.cancel') }}
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
+                                        @if($booking->status === 'pending')
+                                            <form action="{{ route('bookings.destroy', $booking->id) }}"
+                                                  method="POST"
+                                                  class="ms-auto">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="px-6 py-3 text-rose-500 text-xs font-bold rounded-xl hover:bg-rose-500/10 transition-colors italic flex items-center gap-2">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                    {{ __('booking.cancel') }}
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -243,143 +207,14 @@
                 @endforeach
             </div>
 
-            {{-- No Results Message (Hidden by default) --}}
-            <div id="noResults" class="text-center py-5 d-none">
-                <i class="bi bi-search text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
-                <p class="text-muted mt-3">{{ __('booking.no_results_found') }}</p>
+            {{-- No Results Message --}}
+            <div id="noResults" class="hidden text-center py-20 animate-fade-in">
+                <div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6 text-slate-300 dark:text-slate-600">
+                    <i class="fa-solid fa-magnifying-glass text-xl"></i>
+                </div>
+                <p class="text-text-muted font-bold italic">{{ __('booking.no_results_found') }}</p>
             </div>
         @endif
     </div>
 </main>
-
 @endsection
-
-@push('styles')
-<style>
-    .hover-lift {
-        transition: all 0.3s ease;
-    }
-
-    .hover-lift:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;
-    }
-
-    .booking-item {
-        transition: all 0.3s ease;
-    }
-
-    .booking-item.hidden {
-        display: none !important;
-    }
-
-    .icon-wrapper {
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .empty-state-icon {
-        animation: float 3s ease-in-out infinite;
-    }
-
-    @keyframes float {
-        0%, 100% {
-            transform: translateY(0);
-        }
-        50% {
-            transform: translateY(-20px);
-        }
-    }
-
-    /* Card status colors */
-    .card[data-status="confirmed"] {
-        border-left: 4px solid #198754;
-    }
-
-    .card[data-status="pending"] {
-        border-left: 4px solid #ffc107;
-        
-    }
-
-    .card[data-status="cancelled"] {
-        border-left: 4px solid #dc3545;
-    }
-</style>
-@endpush
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const statusFilter = document.getElementById('statusFilter');
-        const searchInput = document.getElementById('searchInput');
-        const sortBy = document.getElementById('sortBy');
-        const bookingsList = document.getElementById('bookingsList');
-        const bookingItems = document.querySelectorAll('.booking-item');
-        const noResults = document.getElementById('noResults');
-
-        // Filter by status
-        if (statusFilter) {
-            statusFilter.addEventListener('change', filterBookings);
-        }
-
-        // Search functionality
-        if (searchInput) {
-            searchInput.addEventListener('input', filterBookings);
-        }
-
-        // Sort functionality
-        if (sortBy) {
-            sortBy.addEventListener('change', sortBookings);
-        }
-
-        function filterBookings() {
-            const statusValue = statusFilter ? statusFilter.value : '';
-            const searchValue = searchInput ? searchInput.value.toLowerCase() : '';
-            let visibleCount = 0;
-
-            bookingItems.forEach(item => {
-                const itemStatus = item.dataset.status;
-                const itemTitle = item.dataset.title;
-
-                const matchesStatus = !statusValue || itemStatus === statusValue;
-                const matchesSearch = !searchValue || itemTitle.includes(searchValue);
-
-                if (matchesStatus && matchesSearch) {
-                    item.classList.remove('hidden');
-                    visibleCount++;
-                } else {
-                    item.classList.add('hidden');
-                }
-            });
-
-            // Show/hide no results message
-            if (noResults) {
-                if (visibleCount === 0 && bookingItems.length > 0) {
-                    noResults.classList.remove('d-none');
-                } else {
-                    noResults.classList.add('d-none');
-                }
-            }
-        }
-
-        function sortBookings() {
-            if (!sortBy || !bookingsList) return;
-
-            const items = Array.from(bookingItems);
-            const sortValue = sortBy.value;
-
-            items.sort((a, b) => {
-                const dateA = parseInt(a.dataset.date);
-                const dateB = parseInt(b.dataset.date);
-
-                return sortValue === 'newest' ? dateB - dateA : dateA - dateB;
-            });
-
-            items.forEach(item => bookingsList.appendChild(item));
-        }
-    });
-</script>
-@endpush

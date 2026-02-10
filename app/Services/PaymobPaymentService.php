@@ -46,13 +46,23 @@ class PaymobPaymentService extends BasePaymentService implements PaymentGatewayI
     /**
      * Handle payment callback
      */
-    public function callBack(Request $request): bool
+    public function callBack(Request $request): array|bool
     {
         $response = $request->all();
 
         $this->logCallback($response);
 
-        return $this->isCallbackSuccessful($response);
+        if ($this->isCallbackSuccessful($response)) {
+            return [
+                'status' => 'paid',
+                'payment_method' => 'paymob',
+                'intent_token' => $response['shipping_data']['intent_token'] ?? null,
+                'amount' => $response['amount_cents'] / 100,
+                'TransactionId' => $response['id'] ?? null,
+            ];
+        }
+
+        return false;
     }
 
     /**
@@ -73,11 +83,12 @@ class PaymobPaymentService extends BasePaymentService implements PaymentGatewayI
     protected function formatPaymentData(Request $request): array
     {
         return [
-            'amount_cents' => $request->get('amount_cents') * 100,
+            'amount_cents' => $request->get('amount_cents'), // Already multiplied by 100 in controller
             'currency' => $request->get('currency', 'EGP'),
             'api_source' => 'INVOICE',
             'integrations' => $this->integrations_id,
             'shipping_data' => [
+                'intent_token' => $request->get('intent_token'),
                 'booking_id' => $request->get('booking_id'),
             ],
         ];

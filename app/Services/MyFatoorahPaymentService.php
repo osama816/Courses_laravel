@@ -47,7 +47,7 @@ class MyFatoorahPaymentService extends BasePaymentService implements PaymentGate
         $this->logCallback($request, $statusData);
 
         if ($this->isPaymentPaid($statusData)) {
-            return $this->formatSuccessResponse($statusData);
+            return $this->formatSuccessResponse($statusData, $request);
         }
 
         return false;
@@ -72,26 +72,21 @@ class MyFatoorahPaymentService extends BasePaymentService implements PaymentGate
      */
     protected function formatPaymentData(Request $request): array
     {
+        $intentToken = $request->get('intent_token');
+
         return [
             'InvoiceValue' => $request->get('InvoiceValue'),
             'DisplayCurrencyIso' => $request->get('currency'),
             'NotificationOption' => 'LNK',
             'Language' => 'ar',
-            'CallBackUrl' => $this->getCallbackUrl($request),
+            'CallBackUrl' => route('payment.callback', ['gateway_type' => 'myfatoorah', 'intent_token' => $intentToken]),
             'CustomerName' => $request->get('CustomerName'),
             'CustomerEmail' => $request->get('CustomerEmail'),
             'CustomerReference' => $request->get('booking_id'),
         ];
     }
 
-    /**
-     * Get callback URL
-     */
-    private function getCallbackUrl(Request $request): string
-    {
-        return $request->getSchemeAndHttpHost()
-            . '/api/payment/callback?gateway_type=myfatoorah';
-    }
+
 
     /**
      * Check if response is successful
@@ -140,7 +135,7 @@ class MyFatoorahPaymentService extends BasePaymentService implements PaymentGate
     /**
      * Format success response
      */
-    private function formatSuccessResponse(array $statusData): array
+    private function formatSuccessResponse(array $statusData, Request $request): array
     {
         $data = $statusData['data']['Data'];
 
@@ -150,6 +145,7 @@ class MyFatoorahPaymentService extends BasePaymentService implements PaymentGate
             'booking_id' => $data['CustomerReference'],
             'status' => 'paid',
             'TransactionId' => $data['InvoiceTransactions'][0]['TransactionId'],
+            'intent_token' => $request->input('intent_token'),
         ];
     }
 

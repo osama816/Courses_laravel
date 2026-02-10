@@ -48,7 +48,6 @@ class CourseForm
                     ->disk('public')
                     ->visibility('public')
                     ->directory('courses')
-                    ->imageEditor()
                     ->required()
                     ->columnSpanFull(),
                 

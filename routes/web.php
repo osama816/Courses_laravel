@@ -1,5 +1,5 @@
 <?php
-
+use Rap2hpoutre\LaravelLogViewer\LogViewerController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
     PageController,
@@ -12,20 +12,10 @@ use App\Http\Controllers\{
     McpSupportController
 };
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
 
-// ============================================================================
-// Public Routes
-// ============================================================================
+
+//logs
+Route::get('/logs', [LogViewerController::class, 'index']);
 
 /**
  * Home Page
@@ -40,7 +30,7 @@ Route::get('lang/{lang}', [LanguageController::class, 'switch'])->name('lang.swi
 /**
  * Courses - Public Browse & View
  */
-Route::resource('courses', CourseController::class)->only(['index', 'show']);
+Route::resource('courses', CourseController::class)->only(['index', 'show'])->where(['course' => '[0-9]+']);
 
 // ============================================================================
 // Authentication Required Routes
@@ -51,9 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ------------------------------------------------------------------------
     // Dashboard
     // ------------------------------------------------------------------------
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::redirect('/dashboard', '/')->name('dashboard');
     // ------------------------------------------------------------------------
     // courses
     // ------------------------------------------------------------------------
@@ -138,6 +126,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/support/chat', [McpSupportController::class, 'chat'])
             ->name('support.chat');
     });
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 // ============================================================================

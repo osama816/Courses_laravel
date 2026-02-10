@@ -43,14 +43,19 @@ class McpSupportController extends Controller
 
             $messages = $request->messages;
             $lastMessage = end($messages);
-            // $res=$this->orchestrator->processQuery($lastMessage);
-            // Log::info('test', ['content' => $res]);
+            
             if (!$lastMessage || $lastMessage['role'] !== 'user') {
                 return response()->json([
                     'error' => 'Invalid message format',
                 ], 400);
             }
+             // Use the Orchestrator with User Context
+            // $response = $this->orchestrator->processQuery($lastMessage['content'], [
+            //     'user_id' => $userId,
+            //     'user_name' => Auth::user()->name ?? 'Guest',
+            // ]);
 
+            // Use the hardcoded processMessage instead of AI due to API errors
             $response = $this->processMessage($lastMessage['content'], $userId);
 
             return response()->json([
@@ -73,7 +78,7 @@ class McpSupportController extends Controller
     private function processMessage(string $message, int $userId): string
     {
         $message = strtolower(trim($message));
-        $userId = Auth::id();
+        $userId = $userId;
         // Check for course-related queries
         if (str_contains($message, 'course') || str_contains($message, 'enroll')) {
             $tool = new \App\Mcp\Tools\GetUserCoursesTool();
@@ -86,17 +91,30 @@ class McpSupportController extends Controller
 
             if (!empty($data['courses'])) {
                 $courses = $data['courses'];
-                $response = "🎉 Hey {$data['user_name']}! You’re currently enrolled in " . count($courses) . " course(s):\n\n";
+                $response = "<div class='space-y-4'>";
+                $response .= "<div class='flex items-center gap-2 mb-2'><span class='text-lg'>🎉</span><span class='font-bold text-slate-900 dark:text-white'>Hey {$data['user_name']}!</span></div>";
+                $response .= "<p class='text-sm text-slate-500 dark:text-slate-400 mb-4'>You’re currently enrolled in <span class='text-primary font-bold'>" . count($courses) . "</span> course(s):</p>";
 
                 foreach ($courses as $index => $course) {
-                    $response .= ($index + 1) . ". **{$course['course_title']}**\n";
-                    $response .= "   Status: ✅ " . ucfirst($course['status']) . "\n\n";
+                    $response .= "
+                    <div class='p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:border-primary/30 transition-colors'>
+                        <div class='flex items-start gap-3'>
+                            <div class='w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-xs'>" . ($index + 1) . "</div>
+                            <div class='flex-1 min-w-0'>
+                                <h4 class='font-bold text-slate-900 dark:text-white text-sm truncate'>{$course['course_title']}</h4>
+                                <div class='flex items-center gap-1.5 mt-1'>
+                                    <span class='w-1.5 h-1.5 rounded-full bg-emerald-500'></span>
+                                    <span class='text-[10px] font-bold text-emerald-600 uppercase tracking-wider'>✅ " . ucfirst($course['status']) . "</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>";
                 }
 
-                $response .= "Keep up the great work! 📚";
+                $response .= "<p class='text-xs font-bold text-slate-400 dark:text-slate-500 pt-2 italic text-center'>Keep up the great work! 📚</p></div>";
                 return $response;
             } else {
-                return "Hey {$data['user_name']}, you don’t have any courses yet. Check out our catalog and start learning today! 🌟";
+                return "<div class='text-center py-4'><div class='text-4xl mb-3'>🌟</div><p class='text-sm font-bold text-slate-900 dark:text-white mb-1'>Hey {$data['user_name']}!</p><p class='text-sm text-slate-500 dark:text-slate-400'>You don’t have any courses yet. Check out our catalog and start learning today!</p></div>";
             }
         }
 
@@ -104,40 +122,66 @@ class McpSupportController extends Controller
         if (str_contains($message, 'payment') || str_contains($message, 'invoice') || str_contains($message, 'paid')) {
             $payments = \App\Models\Payment::whereHas('booking', function ($q) use ($userId) {
                 $q->where('user_id', $userId);
-            })->with('invoice')->latest()->get();
+            })->with(['invoice', 'booking.course'])->latest()->get();
 
             if ($payments->isEmpty()) {
-                return "I couldn't find any payment records for your account.";
+                return "<div class='text-center py-4'><div class='text-4xl mb-3'>🔍</div><p class='text-sm text-slate-500 dark:text-slate-400'>I couldn't find any payment records for your account.</p></div>";
             }
 
- $response = "Your payments:<br><br>";
+            $response = "<div class='space-y-4'>";
+            $response .= "<div class='flex items-center gap-2 mb-2'><i class='fa-solid fa-receipt text-primary'></i><span class='font-bold text-slate-900 dark:text-white'>Your Recent Payments</span></div>";
 
-foreach ($payments as $payment) {
-    $course = $payment->booking->course;
+            foreach ($payments as $payment) {
+                $course = $payment->booking->course;
+                $statusColor = $payment->status === 'paid' ? 'emerald' : 'amber';
+                
+                $response .= "
+                <div class='p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm'>
+                    <div class='flex justify-between items-start mb-3'>
+                        <h4 class='font-bold text-slate-900 dark:text-white text-sm leading-tight'>{$course->title}</h4>
+                        <span class='shrink-0 px-2 py-0.5 rounded-md bg-{$statusColor}-500/10 text-{$statusColor}-600 text-[10px] font-bold uppercase'>" . ucfirst($payment->status) . "</span>
+                    </div>
+                    
+                    <div class='grid grid-cols-2 gap-2 mb-4'>
+                        <div class='p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800'>
+                            <span class='block text-[8px] uppercase font-bold text-slate-400 tracking-widest'>Amount</span>
+                            <span class='text-xs font-bold text-slate-700 dark:text-slate-300'>$" . number_format($payment->amount, 2) . "</span>
+                        </div>
+                        <div class='p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800'>
+                            <span class='block text-[8px] uppercase font-bold text-slate-400 tracking-widest'>Method</span>
+                            <span class='text-xs font-bold text-slate-700 dark:text-slate-300'>{$payment->payment_method}</span>
+                        </div>
+                    </div>";
 
-    $response .= "<p>Course: {$course->title}</p>";
-  //  $response .= "<h3>Booking ID: {$payment->booking_id}</h3><ul>";
-    $response .= "<li>Amount: $" . number_format($payment->amount, 2) . "</li>";
-    $response .= "<li>Status: {$payment->status}</li>";
-    $response .= "<li>Method: {$payment->payment_method}</li>";
+                if ($payment->invoice) {
+                    $invoiceId = $payment->invoice->id;
+                    $viewLink = url("/invoice/{$invoiceId}");
+                    $downloadLink = url("/invoice/{$invoiceId}/download");
 
-    if ($payment->invoice) {
-        $invoiceId = $payment->invoice->id;
-        $viewLink = url("/invoice/{$invoiceId}");
-        $downloadLink = url("/invoice/{$invoiceId}/download");
+                    $response .= "
+                    <div class='flex gap-2 pt-2 border-t border-slate-50 dark:border-slate-800'>
+                        <a href='{$viewLink}' class='flex-1 py-2 rounded-xl bg-primary text-white text-[10px] font-bold text-center hover:bg-primary-hover transition-colors'>View Invoice</a>
+                        <a href='{$downloadLink}' class='flex-1 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold text-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors'>Download</a>
+                    </div>";
+                }
 
-        $response .= "<li>Invoice:<div>";
-        $response .= "<button onclick=\"window.location.href='{$viewLink}'\">View</button> ";
-        $response .= "<button onclick=\"window.location.href='{$downloadLink}'\">Download</button>";
-        $response .= "</div></li>";
-    }
+                $response .= "</div>";
+            }
 
-    $response .= "</ul><hr>";
-}
+            $response .= "</div>";
+            return $response;
 
 
             return $response;
         }
+        if (str_contains($message, 'hi')||str_contains($message, 'hello')) {
+            return "Hello! How can I help you today?";
+        }
+        if (str_contains($message, 'thank')||str_contains($message, 'thanks')) {
+            return "You're welcome!";
+        }
+        
+            
 
 
 
@@ -150,122 +194,6 @@ foreach ($payments as $payment) {
             "• Technical support\n\n" .
             "Try asking: 'What courses do I have?' or 'Check my payment status'";
     }
-    // private function processMessage(string $message, int $userId): string
-    // {
-    //     $message = strtolower(trim($message));
-    //     $userId = Auth::id();
-    //     // Check for course-related queries
-    //     if (str_contains($message, 'course') || str_contains($message, 'enroll')) {
-    //         $tool = new \App\Mcp\Tools\GetUserCoursesTool();
-    //         $request = new \Laravel\Mcp\Request([
-    //             'params' => ['user_id' => $userId],
-    //         ]);
-    //         $data = $tool->handle($request);
-    //         Log::info('Tool Response Content:', ['content' => $data]);
-
-
-    //         if (!empty($data['courses'])) {
-    //             $courses = $data['courses'];
-    //             $response = "🎉 Hey {$data['user_name']}! You’re currently enrolled in " . count($courses) . " course(s):\n\n";
-
-    //             foreach ($courses as $index => $course) {
-    //                 $response .= ($index + 1) . ". **{$course['course_title']}**\n";
-    //                 $response .= "   Status: ✅ " . ucfirst($course['status']) . "\n\n";
-    //             }
-
-    //             $response .= "Keep up the great work! 📚";
-    //             return $response;
-    //         } else {
-    //             return "Hey {$data['user_name']}, you don’t have any courses yet. Check out our catalog and start learning today! 🌟";
-    //         }
-    //     }
-
-    //     // Check for payment-related queries
-    //     if (str_contains($message, 'payment') || str_contains($message, 'invoice') || str_contains($message, 'paid')) {
-    //         // Get user's latest payment
-    //         $payment = \App\Models\Payment::whereHas('booking', function ($q) use ($userId) {
-    //             $q->where('user_id', $userId);
-    //         })->latest()->first();
-
-    //         if ($payment) {
-    //             $tool = new \App\Mcp\Tools\GetPaymentStatusTool();
-    //             $request = new \Laravel\Mcp\Request([
-    //                 'params' => ['payment_id' => $payment->id],
-    //             ]);
-    //             $data = $tool->handle($request);
-
-
-    //             if ($data) {
-    //                 return "Your payment status:\n\n" .
-    //                     "• Amount: $" . number_format($data['amount'], 2) . "\n" .
-    //                     "• Status: **{$data['status']}**\n" .
-    //                     "• Method: {$data['payment_method']}\n" .
-    //                     ($data['has_invoice'] ? "\nYou can download your invoice from your booking page." : "");
-    //             }
-    //         } else {
-    //             return "I couldn't find any payment records for your account.";
-    //         }
-    //     }
-
-    //     // Default response
-    //     return "I'm here to help! You can ask me about:\n\n" .
-    //         "• Your enrolled courses\n" .
-    //         "• Payment status and invoices\n" .
-    //         "• Course information\n" .
-    //         "• Technical support\n\n" .
-    //         "Try asking: 'What courses do I have?' or 'Check my payment status'";
-    // }
-
-
-
-    // public function chat(Request $request)
-    // {
-    //     log::info('MCP Support Chat Request: ', $request->all());
-    //     $userId =  Auth::id();
-    //     $request->validate([
-    //         'messages' => 'required|array',
-    //     ]);
-
-    //     // $userId = $request->input('user_id', Auth::id()); // fallback على المستخدم المسجل
-    //     if (!$userId) {
-    //         return response()->json([
-    //             'error' => 'The user id field .',
-    //         ], 400);
-    //     }
-    //     // // Ensure user can only access their own chat
-    //     // if (Auth::check() && Auth::id() != $userId) {
-    //     //     return response()->json([
-    //     //         'error' => 'Unauthorized',
-    //     //     ], 403);
-    //     // }
-
-    //     try {
-    //         // Get the last user message
-    //         $messages = $request->messages;
-    //         $lastMessage = end($messages);
-
-    //         if (!$lastMessage || $lastMessage['role'] !== 'user') {
-    //             return response()->json([
-    //                 'error' => 'Invalid message format',
-    //             ], 400);
-    //         }
-
-    //         // For now, return a simple response
-    //         // In production, you would integrate with the actual MCP server
-    //         $response = $this->processMessage($lastMessage['content'], $userId);
-
-    //         return response()->json([
-    //             'content' => $response,
-    //             'role' => 'assistant',
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         Log::error('MCP Support Error: ' . $e->getMessage());
-
-    //         return response()->json([
-    //             'error' => 'An error occurred while processing your request.',
-    //             'message' => $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
+ 
 
 }

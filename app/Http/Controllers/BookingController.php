@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\course;
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Models\Invoice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
@@ -13,26 +14,22 @@ use App\Http\Requests\UpdateBookingRequest;
 
 class BookingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+   
     public function index()
     {
-        $bookings = Booking::where('user_id', Auth::id())->get();
-        return view('bookings.show_All', ['bookings' => $bookings]);
+        $bookings = Booking::with(['payment', 'invoice'])
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
+            
+        return view('bookings.show_All', compact('bookings'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+  
     public function create($course)
     {
         $course = Course::findOrFail($course);
-        // if ($course->available_seats <= 0) {
-        //     return redirect()->back()->with('error', __('booking.no_seats_available'));
-        // }
-
-        // Check if user already booked this course
+        
         $existingBooking = Booking::where('user_id', Auth::id())
             ->where('course_id', $course->id)
             ->whereIn('status', ['pending', 'confirmed'])
@@ -46,76 +43,73 @@ class BookingController extends Controller
         return view('bookings.create', ['course' => $course]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    
+    
     public function store(StoreBookingRequest $request)
     {
-
         $validated = $request->validated();
+        
         try {
             DB::beginTransaction();
 
-            // Get the course
             $course = Course::findOrFail($validated['course_id']);
             $amount = $course->price;
             $user = Auth::user();
 
-            // Check available seats
             if ($course->available_seats <= 0) {
                 return redirect()->back()
                     ->with('error', __('booking.no_seats_available'))
                     ->withInput();
             }
 
-            // Create booking
-            $booking = Booking::create([
-                'user_id' => $user->id,
-                'course_id' => $validated['course_id'],
-                'status' => 'pending',
-            ]);
-
-            // If payment method is online (Paymob), redirect to payment
-            if ($validated['payment_method'] === 'paymob') {
-                // Prepare payment data
-
-                $paymentData = [
-                    "amount_cents" => $amount * 100,
-                    "currency" => "EGP",
-                    "shipping_data" => [
-                        'booking_id' => $booking->id,
-                        'api_source' => 'INVOICE',
-                    ],
-                ];
+            if (in_array($validated['payment_method'], ['paymob', 'myfatoorah'])) {
+                // Generate unique intent token
+                $intentToken = 'booking_intent_' . uniqid() . '_' . time();
+                
+                // Store booking intent in cache (valid for 1 hour)
+                \Illuminate\Support\Facades\Cache::put($intentToken, [
+                    'user_id' => $user->id,
+                    'course_id' => $validated['course_id'],
+                    'payment_method' => $validated['payment_method'],
+                    'amount' => $amount,
+                ], now()->addHour());
 
                 DB::commit();
 
-                // Redirect to payment API
-                return redirect()->route('payment.booking', ['gateway_type' => 'paymob'] + $paymentData);
+                if ($validated['payment_method'] === 'paymob') {
+                    $paymentData = [
+                        "amount_cents" => $amount * 100,
+                        "currency" => "EGP",
+                        "intent_token" => $intentToken,
+                    ];
+                    return redirect()->route('payment.booking', ['gateway_type' => 'paymob'] + $paymentData);
+                }
+
+                if ($validated['payment_method'] === 'myfatoorah') {
+                    $paymentData = [
+                        "InvoiceValue" => $amount,
+                        "currency" => "EGP",
+                        "CustomerName" => $user->name,
+                        "CustomerEmail" => !empty($user->email) ? $user->email : "guest@example.com",
+                        "intent_token" => $intentToken,
+                    ];
+                    return redirect()->route('payment.booking', ['gateway_type' => 'myfatoorah'] + $paymentData);
+                }
             }
 
-            if ($validated['payment_method'] === 'myfatoorah') {
-                // Prepare payment data
-                $paymentData = [
-                    "InvoiceValue" => $amount,
-                    "currency" => "EGP",
-                    "CustomerName" => $user->name,
-                    "CustomerEmail" => !empty($user->email) ? $user->email : "guest@example.com",
-                    'booking_id' => $booking->id,
-                ];
-                DB::commit();
-
-                // Redirect to payment API
-                return redirect()->route('payment.booking', ['gateway_type' => 'myfatoorah'] + $paymentData);
-            }
             if ($validated['payment_method'] === 'cash') {
-                // Create pending payment record for cash
+                $booking = Booking::create([
+                    'user_id' => $user->id,
+                    'course_id' => $validated['course_id'],
+                    'status' => 'pending',
+                ]);
+
                 Payment::create([
                     'booking_id'      => $booking->id,
                     'payment_method'  => 'cash',
                     'amount'          => "$amount",
                     'status'          => 'pending',
-                    'transaction_id'  => 'CASH-PENDING-' . uniqid(), // optional unique ref
+                    'transaction_id'  => 'CASH-PENDING-' . uniqid(),
                     'paid_at'         => null,
                 ]);
 
@@ -124,11 +118,9 @@ class BookingController extends Controller
                 return redirect()->route('bookings.show', $booking->id);
             }
 
-
-            // For cash payment, just confirm the booking
             DB::commit();
-
-            return redirect()->route('bookings.show', $booking->id);
+            return redirect()->route('bookings.index');
+            
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()
@@ -137,34 +129,23 @@ class BookingController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Booking $booking)
     {
-        $course = Course::findOrFail($booking->course_id);
-        return view('bookings.show', ['booking' => $booking, 'course' => $course]);
+        $booking->load(['course', 'payment', 'invoice']);
+        return view('bookings.show', ['booking' => $booking, 'course' => $booking->course, 'invoice' => $booking->invoice]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Booking $booking)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateBookingRequest $request, Booking $booking)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    
     public function destroy(Booking $booking)
     {
         $booking->delete();

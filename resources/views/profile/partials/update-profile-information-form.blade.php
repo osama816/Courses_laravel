@@ -1,10 +1,11 @@
 <section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+    <header class="mb-8">
+        <h2 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <i class="fa-solid fa-address-card text-primary text-xl"></i>
             {{ __('Profile Information') }}
         </h2>
 
-        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        <p class="mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">
             {{ __("Update your account's profile information and email address.") }}
         </p>
     </header>
@@ -13,33 +14,34 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('profile.update') }}" class="space-y-6">
         @csrf
         @method('patch')
 
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
+        <div class="space-y-2">
+            <x-input-label for="name" :value="__('Name')" class="text-xs font-bold uppercase tracking-widest text-slate-400 ms-1" />
+            <x-text-input id="name" name="name" type="text" class="block w-full h-14" :value="old('name', $user->name)" required autofocus autocomplete="name" />
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
         </div>
 
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
+        <div class="space-y-2">
+            <x-input-label for="email" :value="__('Email')" class="text-xs font-bold uppercase tracking-widest text-slate-400 ms-1" />
+            <x-text-input id="email" name="email" type="email" class="block w-full h-14" :value="old('email', $user->email)" required autocomplete="username" />
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800 dark:text-gray-200">
+                <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/30">
+                    <p class="text-sm font-medium text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-exclamation"></i>
                         {{ __('Your email address is unverified.') }}
 
-                        <button form="send-verification" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
-                            {{ __('Click here to re-send the verification email.') }}
+                        <button form="send-verification" class="ms-auto underline text-xs font-bold hover:text-amber-900 dark:hover:text-amber-100 transition-colors">
+                            {{ __('Resend Verification') }}
                         </button>
                     </p>
 
                     @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600 dark:text-green-400">
+                        <p class="mt-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                             {{ __('A new verification link has been sent to your email address.') }}
                         </p>
                     @endif
@@ -47,8 +49,11 @@
             @endif
         </div>
 
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+        <div class="flex items-center gap-4 pt-4 border-t border-slate-50 dark:border-slate-800">
+            <button type="submit" class="btn-premium px-8 py-3.5 shadow-lg shadow-primary/20">
+                <i class="fa-solid fa-cloud-arrow-up me-2"></i>
+                {{ __('Save Changes') }}
+            </button>
 
             @if (session('status') === 'profile-updated')
                 <p
@@ -56,8 +61,11 @@
                     x-show="show"
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600 dark:text-gray-400"
-                >{{ __('Saved.') }}</p>
+                    class="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2"
+                >
+                    <i class="fa-solid fa-check-circle"></i>
+                    {{ __('Saved.') }}
+                </p>
             @endif
         </div>
     </form>

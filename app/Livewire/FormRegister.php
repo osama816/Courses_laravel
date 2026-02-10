@@ -30,17 +30,23 @@ class FormRegister extends Component
 
     public function register()
     {
+        \Log::info('Registration attempt for: ' . $this->email);
         $validate = $this->validate();
+        
         $user = User::create([
             'name' =>  $validate['name'],
             'email' =>  $validate['email'],
             'password' => Hash::make($validate['password']),
             'role' => 'student'
         ]);
+        
+        \Log::info('Registration successful for: ' . $this->email);
+        
         event(new \Illuminate\Auth\Events\Registered($user));
         Auth::login($user);
         session()->regenerate();
-        return redirect()->intended(route('home'));
+        
+        return $this->redirect(route('home'), navigate: true);
     }
 
     public function render()

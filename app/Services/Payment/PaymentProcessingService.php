@@ -10,24 +10,41 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentProcessingService
 {
-    /**
-     * Process successful payment
-     */
+
     public function processSuccessfulPayment(array $paymentData): array
     {
         DB::beginTransaction();
 
         try {
-            // Get booking
-            $booking = Booking::with('course')->findOrFail($paymentData['booking_id']);
+            $booking = null;
+            
+            if (isset($paymentData['booking_id'])) {
+                $booking = Booking::with('course')->findOrFail($paymentData['booking_id']);
+            } else {
+                // Get intent token from payment data
+                $intentToken = $paymentData['intent_token'] ?? null;
+                
+                if (!$intentToken) {
+                    throw new \Exception('No intent token found in payment data');
+                }
+                
+                // Retrieve booking intent from cache
+                $bookingIntent = \Illuminate\Support\Facades\Cache::get($intentToken);
+                
+                if (!$bookingIntent) {
+                    throw new \Exception('Booking intent not found or expired');
+                }
+                
+                $booking = $this->createBookingFromIntent($bookingIntent);
+                
+                // Clear cache after creating booking
+                \Illuminate\Support\Facades\Cache::forget($intentToken);
+            }
 
-            // Update booking
             $this->updateBookingStatus($booking);
 
-            // Create payment record
             $payment = $this->createPaymentRecord($booking, $paymentData);
 
-            // Create invoice
             $invoice = $this->createInvoice($booking, $payment, $paymentData);
 
             DB::commit();
@@ -52,18 +69,12 @@ class PaymentProcessingService
         }
     }
 
-    /**
-     * Update booking status and course seats
-     */
     private function updateBookingStatus(Booking $booking): void
     {
         $booking->update(['status' => 'confirmed']);
         $booking->course->decrement('available_seats');
     }
 
-    /**
-     * Create payment record
-     */
     private function createPaymentRecord(Booking $booking, array $paymentData): Payment
     {
         return Payment::create([
@@ -89,6 +100,15 @@ class PaymentProcessingService
             'amount' => $paymentData['amount'],
             'status' => 'paid',
             'issued_at' => now(),
+        ]);
+    }
+
+    private function createBookingFromIntent(array $intent): Booking
+    {
+        return Booking::create([
+            'user_id' => $intent['user_id'],
+            'course_id' => $intent['course_id'],
+            'status' => 'pending',
         ]);
     }
 }

@@ -19,18 +19,21 @@ class UserSeeder extends Seeder
                 'name' => 'Admin User',
                 'email' => 'admin@example.com',
                 'role' => 'admin',
+                'email_verified_at' => now(),
                 'password' => Hash::make('123456789'),
             ],
             [
                 'name' => 'student User',
                 'email' => 'student@example.com',
                 'role' => 'student',
+                'email_verified_at' => now(),
                 'password' => Hash::make('123456789'),
             ],
             [
                 'name' => 'instructor User',
                 'email' => 'instructor@example.com',
                 'role' => 'instructor',
+                'email_verified_at' => now(),
                 'password' => Hash::make('123456789'),
             ],
         ];

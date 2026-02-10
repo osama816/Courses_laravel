@@ -2,91 +2,120 @@
 
 namespace App\Services;
 
-use App\Mcp\Servers\SupportServer;
+use Laravel\Mcp\Facades\Mcp;
+use Illuminate\Support\Facades\Log;
 
 class MCPLLMOrchestrator
 {
-    protected $mcpServer;
     protected $llmService;
     protected $conversationHistory = [];
 
-    public function __construct(MCPService $MCPService, LLMService $llmService)
+    public function __construct(LLMService $llmService)
     {
-        $this->mcpServer = $MCPService;
         $this->llmService = $llmService;
     }
 
-    public function processQuery($userQuery)
+    /**
+     * Process user query through LLM with MCP tool support
+     */
+    public function processQuery(string $userQuery, array $context = [])
     {
-        // 1. الحصول على الـ tools المتاحة من MCP
-        $availableTools = $this->getMCPTools();
+        // Add User Context to History if it's the first message
+        if (empty($this->conversationHistory)) {
+            $user_id = $context['user_id'] ?? 'Unknown';
+            $user_name = $context['user_name'] ?? 'Guest';
+            
+            $this->conversationHistory[] = [
+                'role' => 'system',
+                'content' => "You are a helpful student support assistant. 
+                              The current user is: $user_name (ID: $user_id). 
+                              Use the user_id $user_id when calling tools like GetUserCoursesTool or GetPaymentStatusTool.
+                              Always verify data using tools before answering specific account questions."
+            ];
+        }
 
-        // 2. إرسال السؤال للـ LLM مع الـ tools
-        $this->conversationHistory[] = [
-            'role' => 'user',
-            'content' => $userQuery
-        ];
+        if (!empty($userQuery)) {
+            $this->conversationHistory[] = [
+                'role' => 'user',
+                'content' => $userQuery
+            ];
+        }
 
+        // 1. Get available tools from all registered MCP servers
+        $mcpTools = Mcp::listTools();
+        $formattedTools = $this->formatToolsForLLM($mcpTools);
+
+        // 2. Send query to LLM
         $response = $this->llmService->sendMessage(
             $this->conversationHistory,
-            $availableTools
+            $formattedTools
         );
 
-        // 3. معالجة tool calls إذا كان LLM طلبهم
-        if (isset($response['content'])) {
-            foreach ($response['content'] as $block) {
-                if ($block['type'] === 'tool_use') {
-                    $toolResult = $this->executeMCPTool(
-                        $block['name'],
-                        $block['input']
-                    );
+        $message = $response['choices'][0]['message'] ?? null;
 
-                    // 4. إرجاع نتيجة الـ tool للـ LLM
+        if (!$message) {
+            return "Sorry, I couldn't process that request.";
+        }
+
+        // Add assistant's message (which might contain tool calls) to history
+        $this->conversationHistory[] = $message;
+
+        // 3. Handle Tool Calls
+        if (!empty($message['tool_calls'])) {
+            foreach ($message['tool_calls'] as $toolCall) {
+                $toolName = $toolCall['function']['name'];
+                $arguments = json_decode($toolCall['function']['arguments'], true);
+
+                Log::info("MCP Tool Execution: $toolName", ['args' => $arguments]);
+
+                try {
+                    // Call the tool via official MCP facade
+                    $result = Mcp::callTool($toolName, $arguments);
+
                     $this->conversationHistory[] = [
-                        'role' => 'assistant',
-                        'content' => $response['content']
+                        'role' => 'tool',
+                        'tool_call_id' => $toolCall['id'],
+                        'name' => $toolName,
+                        'content' => json_encode($result),
                     ];
-
+                } catch (\Exception $e) {
+                    Log::error("MCP Tool Failed: $toolName", ['error' => $e->getMessage()]);
                     $this->conversationHistory[] = [
-                        'role' => 'user',
-                        'content' => [
-                            [
-                                'type' => 'tool_result',
-                                'tool_use_id' => $block['id'],
-                                'content' => json_encode($toolResult)
-                            ]
-                        ]
+                        'role' => 'tool',
+                        'tool_call_id' => $toolCall['id'],
+                        'name' => $toolName,
+                        'content' => json_encode(['error' => $e->getMessage()]),
                     ];
-
-                    // إعادة إرسال للـ LLM
-                    return $this->processQuery('');
                 }
             }
+
+            // 4. Send tool results back to LLM to get final response
+            return $this->processQuery('');
         }
 
-        // 5. إرجاع النتيجة النهائية
-        return $this->extractTextResponse($response);
+        // 5. Return final text response
+        return $message['content'] ?? "I'm not sure how to respond to that.";
     }
 
-    protected function getMCPTools()
+    /**
+     * Format MCP tool list for OpenAI
+     */
+    protected function formatToolsForLLM(array $mcpTools): array
     {
-        // الحصول على قائمة الـ tools من MCP server
-        return $this->mcpServer->callTool('list_tools', [SupportServer::class]);
-    }
-
-    protected function executeMCPTool($toolName, $arguments)
-    {
-        return $this->mcpServer->callTool($toolName, $arguments);
-    }
-
-    protected function extractTextResponse($response)
-    {
-        $text = '';
-        foreach ($response['content'] as $block) {
-            if ($block['type'] === 'text') {
-                $text .= $block['text'];
-            }
+        $formatted = [];
+        foreach ($mcpTools as $tool) {
+            $formatted[] = [
+                'type' => 'function',
+                'function' => [
+                    'name' => $tool->name,
+                    'description' => $tool->description,
+                    'parameters' => $tool->inputSchema ?? [
+                        'type' => 'object',
+                        'properties' => (object)[],
+                    ],
+                ],
+            ];
         }
-        return $text;
+        return $formatted;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use Illuminate\Foundation\Auth\User;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
@@ -19,14 +19,17 @@ class Login extends Component
 
     public function login()
     {
-       $validate= $this->validate();
+        \Log::info('Login attempt for: ' . $this->email);
+        $validate = $this->validate();
 
-        if (Auth::attempt(['email' => $validate['email'], 'password' =>$validate["password"]], $this->remember)) {
+        if (Auth::attempt(['email' => $validate['email'], 'password' => $validate['password']], $this->remember)) {
+            \Log::info('Login successful for: ' . $this->email);
             session()->regenerate();
-            return redirect()->intended(route('home'));
+            
+            return $this->redirect(route('home'), navigate: true);
         }
-        //$this->reset(['email','password']);
 
+        \Log::warning('Login failed for: ' . $this->email);
         $this->errorMessage = 'Email or password Not Found';
     }
 

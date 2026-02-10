@@ -3,287 +3,292 @@
 @section('title', __('booking.book_course') . ' - CourseBook')
 
 @section('content')
-
-<main class="py-5 flex-grow-1">
-    <div class="container">
-        <!-- Header -->
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 fw-bold mb-0">{{ __('booking.book_course') }}</h1>
-
-            <div class="badge bg-success-subtle text-success d-flex align-items-center gap-2 px-3 py-2 rounded-pill shadow-sm">
-                <span class="realtime-dot blink"></span>
-                {{ __('booking.live_seats_updating') }}
+<main class="min-h-screen bg-surface dark:bg-slate-900/50 py-12 sm:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-fade-in">
+            <div>
+                <h1 class="text-3xl lg:text-4xl font-bold text-text-base mb-2 italic border-l-8 border-primary ps-6">
+                    {{ __('booking.book_course') }}
+                </h1>
+                <p class="text-text-muted ps-6">{{ __('booking.live_seats_updating') }}</p>
+            </div>
+            
+            <div class="flex items-center gap-3 px-6 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                <span class="text-emerald-600 dark:text-emerald-400 font-bold text-sm tracking-tight">
+                    @livewire('available-seats', ['courseId' => $course->id]) {{ __('booking.seats_available') }}
+                </span>
             </div>
         </div>
 
-        {{-- Error Messages --}}
-        @if ($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <strong><i class="bi bi-exclamation-triangle me-2"></i>{{ __('booking.error_occurred') }}</strong>
-                <ul class="mb-0 mt-2">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-
-        {{-- Success Message --}}
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-
-        <div class="row g-4">
-            <!-- Booking Form -->
-            <div class="col-lg-7">
-                <form id="bookingForm"
-                      class="needs-validation p-4 rounded-4 shadow-sm border bg-white"
-                      novalidate
-                      method="POST"
-                      action="{{ route('bookings.store') }}">
-                     @csrf
-
-                    <div class="mb-4">
-                        <h2 class="h4 fw-bold mb-2">{{ __('booking.course') }}: {{ $course->title }}</h2>
-                        <div class="d-flex align-items-center gap-3 text-muted">
-                            <small class="d-flex align-items-center gap-1">
-                                <i class="bi bi-people"></i>
-                                {{ __('booking.seats_available') }}:
-                                <strong class="text-primary" id="seatsAvailable">
-                                    @livewire('available-seats', ['courseId' => $course->id])
-                                </strong>
-                            </small>
-                            <small class="d-flex align-items-center gap-1">
-                                <i class="bi bi-tag"></i>
-                                {{ __('booking.price') }}:
-                                <strong class="text-success">${{ number_format($course->price, 2) }}</strong>
-                            </small>
+        @if ($errors->any() || session('success'))
+            <div class="mb-8 space-y-4 animate-fade-in-up">
+                @if ($errors->any())
+                    <div class="flex items-start gap-4 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400">
+                        <i class="fa-solid fa-circle-exclamation text-xl mt-0.5"></i>
+                        <div class="flex-1">
+                            <strong class="font-bold block mb-1">{{ __('booking.error_occurred') }}</strong>
+                            <ul class="text-sm space-y-1 opacity-90">
+                                @foreach ($errors->all() as $error)
+                                    <li>• {{ $error }}</li>
+                                @endforeach
+                            </ul>
                         </div>
                     </div>
+                @endif
 
-                    <hr class="my-4">
+                @if (session('success'))
+                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                        <i class="fa-solid fa-circle-check text-xl"></i>
+                        <p class="font-bold">{{ session('success') }}</p>
+                    </div>
+                @endif
+            </div>
+        @endif
 
+        <div class="grid lg:grid-cols-12 gap-12 items-start">
+            <!-- Left Column: Booking Form -->
+            <div class="lg:col-span-7 space-y-8 animate-fade-in-up delay-100">
+                <form id="bookingForm" 
+                      method="POST" 
+                      action="{{ route('bookings.store') }}"
+                      class="premium-card p-8 sm:p-10">
+                    @csrf
+                    
                     {{-- Hidden Fields --}}
                     <input type="hidden" name="course_id" value="{{ $course->id }}">
                     <input type="hidden" name="amount" value="{{ $course->price }}">
 
-                    {{-- User Information (if not logged in) --}}
-                    @guest
-                    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <div>
-                            {{ __('booking.login_required') }}
-                            <a href="{{ route('login') }}" class="alert-link">{{ __('booking.login_here') }}</a>
+                    <div class="space-y-10">
+                        <!-- Course Info Summary (Form Header) -->
+                        <div class="pb-8 border-b border-slate-100 dark:border-slate-800">
+                            <h2 class="text-2xl font-bold text-text-base mb-4">
+                                {{ __('booking.course') }}: <span class="text-primary">{{ $course->title }}</span>
+                            </h2>
+                            <div class="flex flex-wrap gap-4 text-sm font-bold text-text-muted">
+                                <span class="flex items-center gap-2 px-3 py-1 bg-surface dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-800">
+                                    <i class="fa-solid fa-tag text-primary/60"></i>
+                                    {{ number_format($course->price, 2) }} SAR
+                                </span>
+                                <span class="flex items-center gap-2 px-3 py-1 bg-surface dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-800">
+                                    <i class="fa-solid fa-clock text-primary/60"></i>
+                                    {{ $course->duration }} {{ __('booking.hours') }}
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    @endguest
 
-                    {{-- Payment Method Selection --}}
-                    <fieldset class="mb-4">
-                        <legend class="h5 fw-bold mb-3">
-                            <i class="bi bi-credit-card me-2"></i>{{ __('booking.payment_method') }}
-                        </legend>
+                        @guest
+                        <div class="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-4">
+                            <i class="fa-solid fa-circle-info text-2xl text-amber-600 dark:text-amber-400"></i>
+                            <p class="text-sm font-bold text-amber-700 dark:text-amber-300">
+                                {{ __('booking.login_required') }} 
+                                <a href="{{ route('login') }}" class="underline decoration-2 underline-offset-4 hover:text-primary transition-colors">{{ __('booking.login_here') }}</a>
+                            </p>
+                        </div>
+                        @endguest
 
-                        <div class="row g-3">
-                            {{-- Paymob Payment --}}
-                            <div class="col-md-6">
-                                <input type="radio"
-                                       class="btn-check payment-radio"
-                                       name="payment_method"
-                                       id="paymob"
-                                       value="paymob"
+                        <!-- Payment Method Selection -->
+                        <div class="space-y-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                    <i class="fa-solid fa-credit-card"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-text-base">{{ __('booking.payment_method') }}</h3>
+                            </div>
 
-                                       autocomplete="off">
-                                <label class="btn btn-outline-primary w-100 h-100 p-4 payment-option"
-                                       for="paymob"
-                                       style="cursor: pointer; transition: all 0.3s ease;">
-                                    <div class="d-flex flex-column align-items-center gap-2">
-                                        <i class="bi bi-credit-card-2-front fs-1"></i>
-                                        <div class="fw-bold">Paymob</div>
-                                        <small class="text-muted">{{ __('booking.pay_online') }}</small>
+                            <div class="grid sm:grid-cols-3 gap-4">
+                                <!-- Paymob Option -->
+                                <label class="relative group cursor-pointer">
+                                    <input type="radio" name="payment_method" value="paymob" class="peer hidden" required>
+                                    <div class="p-6 rounded-[2rem] bg-surface dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 peer-checked:border-primary peer-checked:bg-primary/5 transition-all duration-300">
+                                        <div class="flex flex-col items-center text-center gap-4">
+                                            <div class="w-16 h-16 rounded-2xl bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                <i class="fa-solid fa-globe text-3xl text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <span class="block font-bold text-text-base text-lg mb-1">Paymob</span>
+                                                <span class="text-xs text-text-muted uppercase tracking-widest font-bold">{{ __('booking.pay_online') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Checked Icon Overlay -->
+                                    <div class="absolute top-4 right-4 text-primary opacity-0 peer-checked:opacity-100 transition-opacity">
+                                        <i class="fa-solid fa-circle-check text-xl"></i>
+                                    </div>
+                                </label>
+
+                                <!-- MyFatoorah Option -->
+                                <label class="relative group cursor-pointer">
+                                    <input type="radio" name="payment_method" value="myfatoorah" class="peer hidden" required>
+                                    <div class="p-6 rounded-[2rem] bg-surface dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 peer-checked:border-primary peer-checked:bg-primary/5 transition-all duration-300">
+                                        <div class="flex flex-col items-center text-center gap-4">
+                                            <div class="w-16 h-16 rounded-2xl bg-white text-primary dark:bg-slate-700 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                <i class="fa-solid fa-receipt text-3xl"></i>
+                                            </div>
+                                            <div>
+                                                <span class="block font-bold text-text-base text-lg mb-1">MyFatoorah</span>
+                                                <span class="text-xs text-text-muted uppercase tracking-widest font-bold">{{ __('booking.pay_online') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="absolute top-4 right-4 text-primary opacity-0 peer-checked:opacity-100 transition-opacity">
+                                        <i class="fa-solid fa-circle-check text-xl"></i>
+                                    </div>
+                                </label>
+
+                                <!-- Cash Option -->
+                                <label class="relative group cursor-pointer text-center">
+                                    <input type="radio" name="payment_method" value="cash" class="peer hidden">
+                                    <div class="p-6 rounded-[2rem] bg-surface dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 peer-checked:border-primary peer-checked:bg-primary/5 transition-all duration-300">
+                                        <div class="flex flex-col items-center gap-4">
+                                            <div class="w-16 h-16 rounded-2xl bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                <i class="fa-solid fa-money-bill-transfer text-3xl text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <span class="block font-bold text-text-base text-lg mb-1">{{ __('booking.cash') }}</span>
+                                                <span class="text-xs text-text-muted uppercase tracking-widest font-bold">{{ __('booking.pay_later') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="absolute top-4 right-4 text-primary opacity-0 peer-checked:opacity-100 transition-opacity">
+                                        <i class="fa-solid fa-circle-check text-xl"></i>
                                     </div>
                                 </label>
                             </div>
-                            {{-- myfatoorah Payment --}}
-                            <div class="col-md-6">
-                                <input type="radio"
-                                       class="btn-check payment-radio"
-                                       name="payment_method"
-                                       id="myfatoorah"
-                                       value="myfatoorah"
-
-                                       autocomplete="off">
-                                <label class="btn btn-outline-primary w-100 h-100 p-4 payment-option"
-                                       for="myfatoorah"
-                                       style="cursor: pointer; transition: all 0.3s ease;">
-                                    <div class="d-flex flex-column align-items-center gap-2">
-                                        <i class="bi bi-credit-card-2-front fs-1"></i>
-                                        <div class="fw-bold">Myfatoorah</div>
-                                        <small class="text-muted">{{ __('booking.pay_online') }}</small>
-                                    </div>
-                                </label>
-                            </div>
-
-                            {{-- Cash Payment --}}
-                            <div class="col-md-6">
-                                <input type="radio"
-                                       class="btn-check payment-radio"
-                                       name="payment_method"
-                                       id="cash"
-                                       value="cash"
-                                       autocomplete="off">
-                                <label class="btn btn-outline-secondary w-100 h-100 p-4 payment-option"
-                                       for="cash"
-                                       style="cursor: pointer; transition: all 0.3s ease;">
-                                    <div class="d-flex flex-column align-items-center gap-2">
-                                        <i class="bi bi-cash-coin fs-1"></i>
-                                        <div class="fw-bold">{{ __('booking.cash') }}</div>
-                                        <small class="text-muted">{{ __('booking.pay_later') }}</small>
-                                    </div>
-                                </label>
-                            </div>
                         </div>
-                    </fieldset>
 
-                    {{-- Terms and Conditions --}}
-                    <div class="form-check mb-4">
-                        <input class="form-check-input"
-                               type="checkbox"
-                               id="agreeTerms"
-                               required>
-                        <label class="form-check-label" for="agreeTerms">
-                            {{ __('booking.agree_terms') }}
-                            <a href="#" class="text-primary">{{ __('booking.terms_conditions') }}</a>
-                        </label>
-                        <div class="invalid-feedback">
-                            {{ __('booking.must_agree_terms') }}
+                        <!-- Terms -->
+                        <div class="pt-6">
+                            <label class="flex items-start gap-4 group cursor-pointer select-none">
+                                <div class="relative flex items-center mt-1">
+                                    <input type="checkbox" id="agreeTerms" required class="peer appearance-none w-6 h-6 border-2 border-slate-200 dark:border-slate-700 rounded-lg checked:bg-primary checked:border-primary transition-all">
+                                    <i class="fa-solid fa-check absolute inset-0 m-auto text-white text-xs opacity-0 peer-checked:opacity-100 pointer-events-none"></i>
+                                </div>
+                                <span class="text-sm font-medium text-text-muted group-hover:text-text-base transition-colors leading-relaxed">
+                                    {{ __('booking.agree_terms') }} 
+                                    <a href="#" class="text-primary font-bold hover:underline underline-offset-4">{{ __('booking.terms_conditions') }}</a>
+                                </span>
+                            </label>
                         </div>
-                    </div>
 
-                    {{-- Action Buttons --}}
-                    <div class="d-flex gap-3 flex-wrap">
-                        @auth
-                            <button class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm"
-                                    type="submit"
-                                    id="submitBtn">
-                                <span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="btnSpinner"></span>
-                                <i class="bi bi-check-circle me-2" id="btnIcon"></i>
-                                <span id="btnText">{{ __('booking.confirm_booking') }}</span>
-                            </button>
-                        @else
-                            <a href="{{ route('login') }}"
-                               class="btn btn-primary  px-3 rounded-pill shadow-sm">
-                                <i class="bi bi-box-arrow-in-right me-1"></i>
-                                {{ __('booking.login_to_book') }}
+                        <!-- Submit Section -->
+                        <div class="pt-8 flex flex-col sm:flex-row items-center gap-4">
+                            @auth
+                                <button type="submit" class="btn-premium w-full sm:w-auto py-4 px-12 text-lg shadow-xl shadow-primary/20">
+                                    <i class="fa-solid fa-shield-check me-2"></i>
+                                    {{ __('booking.confirm_booking') }}
+                                </button>
+                            @else
+                                <a href="{{ route('login') }}" class="btn-premium w-full sm:w-auto py-4 px-12 text-lg">
+                                    <i class="fa-solid fa-right-to-bracket me-2"></i>
+                                    {{ __('booking.login_to_book') }}
+                                </a>
+                            @endauth
+                            
+                            <a href="{{ route('courses.show', $course->id) }}" class="flex items-center gap-2 text-sm font-bold text-text-muted hover:text-text-base transition-colors group">
+                                <i class="fa-solid fa-arrow-left me-1 transition-transform group-hover:-translate-x-1"></i>
+                                {{ __('booking.back_to_course') }}
                             </a>
-                        @endauth
-
-                        <a href="{{ route('courses.show', $course->id) }}"
-                           class="btn btn-outline-secondary btn-lg px-2 rounded-pill">
-                            <i class="bi bi-arrow-left me-2"></i>
-                            {{ __('booking.back_to_course') }}
-                        </a>
+                        </div>
                     </div>
                 </form>
             </div>
 
-            <!-- Summary Card -->
-            <div class="col-lg-5">
-                <div class="position-sticky" style="top: 100px;">
-                    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-                        <div class="card-header bg-gradient text-white py-3"
-                             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span class="fw-bold">
-                                    <i class="bi bi-receipt me-2"></i>{{ __('booking.summary') }}
-                                </span>
-                                <span class="badge bg-white text-primary fw-bold px-3 py-2 rounded-pill">
-                                    $<span id="totalPrice">{{ number_format($course->price, 2) }}</span>
-                                </span>
+            <!-- Right Column: Summary & Features -->
+            <div class="lg:col-span-5 space-y-8 sticky top-24 animate-fade-in-up delay-200">
+                <!-- Summary Card -->
+                <div class="premium-card overflow-hidden">
+                    <!-- Header with Gradient -->
+                    <div class="bg-gradient-to-r from-primary/90 to-primary p-8 text-white relative overflow-hidden">
+                        <div class="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+                        <div class="relative flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-receipt text-2xl opacity-80"></i>
+                                <h4 class="text-xl font-bold">{{ __('booking.summary') }}</h4>
                             </div>
-                        </div>
-                        <div class="card-body p-4">
-                            <dl class="row mb-0">
-                                <dt class="col-5 text-muted mb-2">
-                                    <i class="bi bi-book me-1"></i>{{ __('booking.course') }}
-                                </dt>
-                                <dd class="col-7 fw-semibold mb-2">{{ $course->title }}</dd>
-
-                                <dt class="col-5 text-muted mb-2">
-                                    <i class="bi bi-calendar me-1"></i>{{ __('booking.start_date') }}
-                                </dt>
-                                <dd class="col-7 mb-2">{{ $course->created_at->format('d M Y') }}</dd>
-
-                                <dt class="col-5 text-muted mb-2">
-                                    <i class="bi bi-person me-1"></i>{{ __('booking.instructor') }}
-                                </dt>
-                                <dd class="col-7 mb-2">{{ $course->instructor->user->name }}</dd>
-
-                                <dt class="col-5 text-muted mb-2">
-                                    <i class="bi bi-speedometer2 me-1"></i>{{ __('booking.level') }}
-                                </dt>
-                                <dd class="col-7 mb-2">
-                                    <span class="badge bg-info-subtle text-info">{{ $course->level }}</span>
-                                </dd>
-
-                                <dt class="col-5 text-muted mb-2">
-                                    <i class="bi bi-clock me-1"></i>{{ __('booking.duration') }}
-                                </dt>
-                                <dd class="col-7 mb-2">{{ $course->duration }} {{ __('booking.hours') }}</dd>
-
-                                <hr class="my-3">
-
-                                <dt class="col-5 text-muted mb-2">
-                                    <i class="bi bi-wallet2 me-1"></i>{{ __('booking.payment') }}
-                                </dt>
-                                <dd class="col-7 mb-2">
-                                    <span class="badge bg-primary-subtle text-primary" id="paymentMethodBadge">
-                                        Paymob
-                                    </span>
-                                </dd>
-
-                                <dt class="col-5 text-muted fw-bold fs-5">
-                                    {{ __('booking.total') }}
-                                </dt>
-                                <dd class="col-7 fw-bold text-success fs-4">
-                                    $<span id="finalPrice">{{ number_format($course->price, 2) }}</span>
-                                </dd>
-                            </dl>
-
-                            {{-- Security Badge --}}
-                            <div class="alert alert-light border d-flex align-items-center mt-3 mb-0" role="alert">
-                                <i class="bi bi-shield-check text-success me-2 fs-5"></i>
-                                <small class="mb-0">{{ __('booking.secure_payment') }}</small>
+                            <div class="text-right">
+                                <span class="block text-[10px] uppercase font-bold opacity-60 tracking-widest mb-1">{{ __('booking.total') }}</span>
+                                <span class="text-2xl font-bold">{{ number_format($course->price, 2) }} SAR</span>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Course Features --}}
-                    <div class="card border-0 shadow-sm rounded-4 mt-3">
-                        <div class="card-body p-4">
-                            <h6 class="fw-bold mb-3">
-                                <i class="bi bi-star me-2 text-warning"></i>{{ __('booking.course_includes') }}
-                            </h6>
-                            <ul class="list-unstyled mb-0">
-                                <li class="mb-2">
-                                    <i class="bi bi-check-circle text-success me-2"></i>
-                                    {{ __('booking.lifetime_access') }}
-                                </li>
-                                <li class="mb-2">
-                                    <i class="bi bi-check-circle text-success me-2"></i>
-                                    {{ __('booking.certificate') }}
-                                </li>
-                                <li class="mb-2">
-                                    <i class="bi bi-check-circle text-success me-2"></i>
-                                    {{ __('booking.support') }}
-                                </li>
-                            </ul>
+                    <div class="p-8 space-y-6">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-start gap-4">
+                                <div class="flex items-center gap-3 text-text-muted italic">
+                                    <i class="fa-solid fa-book-open w-5 text-primary/60"></i>
+                                    <span class="text-sm font-bold">{{ __('booking.course') }}</span>
+                                </div>
+                                <span class="text-sm font-bold text-text-base text-right max-w-[200px]">{{ $course->title }}</span>
+                            </div>
+
+                            <div class="flex justify-between items-center gap-4">
+                                <div class="flex items-center gap-3 text-text-muted italic">
+                                    <i class="fa-solid fa-calendar-day w-5 text-primary/60"></i>
+                                    <span class="text-sm font-bold">{{ __('booking.start_date') }}</span>
+                                </div>
+                                <span class="text-sm font-bold text-text-base">{{ $course->created_at->format('d M Y') }}</span>
+                            </div>
+
+                            <div class="flex justify-between items-center gap-4">
+                                <div class="flex items-center gap-3 text-text-muted italic">
+                                    <i class="fa-solid fa-user-tie w-5 text-primary/60"></i>
+                                    <span class="text-sm font-bold">{{ __('booking.instructor') }}</span>
+                                </div>
+                                <span class="text-sm font-bold text-text-base">{{ $course->instructor->user->name }}</span>
+                            </div>
+
+                            <div class="flex justify-between items-center gap-4">
+                                <div class="flex items-center gap-3 text-text-muted italic">
+                                    <i class="fa-solid fa-layer-group w-5 text-primary/60"></i>
+                                    <span class="text-sm font-bold">{{ __('booking.level') }}</span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-md bg-primary/5 text-primary text-[10px] uppercase font-bold border border-primary/10">
+                                    {{ $course->level }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center justify-center gap-4 text-xs font-bold text-emerald-500 uppercase tracking-widest bg-emerald-500/5 py-4 rounded-2xl border border-emerald-500/10">
+                                <i class="fa-solid fa-shield-check text-base"></i>
+                                {{ __('booking.secure_payment') }}
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Features Card -->
+                <div class="premium-card p-8 group">
+                    <h6 class="text-sm font-bold text-text-base mb-6 flex items-center gap-3 italic">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+                        {{ __('booking.course_includes') }}
+                    </h6>
+                    <ul class="space-y-4">
+                        <li class="flex items-center gap-4 text-sm font-medium text-text-muted group-hover:text-text-base transition-colors">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            {{ __('booking.lifetime_access') }}
+                        </li>
+                        <li class="flex items-center gap-4 text-sm font-medium text-text-muted group-hover:text-text-base transition-colors">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                <i class="fa-solid fa-certificate"></i>
+                            </div>
+                            {{ __('booking.certificate') }}
+                        </li>
+                        <li class="flex items-center gap-4 text-sm font-medium text-text-muted group-hover:text-text-base transition-colors">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                <i class="fa-solid fa-headset"></i>
+                            </div>
+                            {{ __('booking.support') }}
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>

@@ -17,7 +17,7 @@ class InstructorFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => '3',
+            'user_id' => User::role('instructor')->inRandomOrder()->first()?->id ?? User::factory()->create()->assignRole('instructor')->id,
             'bio' => $this->faker->paragraph(2),
             'avatar_url' => $this->faker->imageUrl(200, 200, 'people', true),
         ];

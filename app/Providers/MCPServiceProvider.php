@@ -3,9 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use App\Services\LlmService;
-use App\Services\MCPService;
+use App\Services\LLMService;
 use App\Services\MCPLLMOrchestrator;
+use Laravel\Mcp\Facades\Mcp;
+use App\Mcp\Servers\SupportServer;
 
 class MCPServiceProvider extends ServiceProvider
 {
@@ -14,20 +15,14 @@ class MCPServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //  LlmService  Singleton
-        $this->app->singleton(LlmService::class, function ($app) {
-            return new LlmService();
+        // LLMService Singleton
+        $this->app->singleton(LLMService::class, function ($app) {
+            return new LLMService();
         });
 
-        //  MCPService  Singleton
-        $this->app->singleton(MCPService::class, function ($app) {
-            return new MCPService();
-        });
-
-        //  MCPLLMOrchestrator
+        // MCPLLMOrchestrator
         $this->app->singleton(MCPLLMOrchestrator::class, function ($app) {
             return new MCPLLMOrchestrator(
-                $app->make(MCPService::class),
                 $app->make(LLMService::class)
             );
         });
@@ -38,6 +33,7 @@ class MCPServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register MCP Server for local use
+        Mcp::local('support', SupportServer::class);
     }
 }

@@ -18,6 +18,7 @@ class CoursesTable
             ->columns([
                 ImageColumn::make('image_url')
                     ->label('Image')
+                    ->disk('public')
                     ->circular(),
                 
                 TextColumn::make('title')

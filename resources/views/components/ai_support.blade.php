@@ -5,103 +5,129 @@
 $currentUserId = $userId ?? Auth::id();
 @endphp
 
-<div x-data="aiSupportWidget({{ $currentUserId }})" class="ai-support-widget">
+<div x-data="aiSupportWidget({{ $currentUserId }})" class="fixed bottom-6 right-6 z-[100]">
     <!-- Floating Button -->
-<button
-    @click="toggleChat"
-    class="ai-support-button"
-    :class="{ 'active': isOpen }"
-    aria-label="Open AI Support">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
-      <path d="M6 1a1 1 0 0 0-1 1v2H3a1 1 0 0 0-1 1v7h12V5a1 1 0 0 0-1-1h-2V2a1 1 0 0 0-1-1H6zm0 1h4v2H6V2zM2 6v6h12V6H2zm2 1h2v2H4V7zm4 0h2v2H8V7z"/>
-    </svg>
-</button>
+    <button
+        @click="toggleChat"
+        class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center shadow-2xl shadow-primary/40 hover:scale-110 active:scale-95 transition-all duration-300 group"
+        :class="{ 'rotate-12 bg-slate-900 shadow-slate-900/40': isOpen }"
+        aria-label="Open AI Support">
+        <template x-if="!isOpen">
+            <img src="{{ asset('assets/chat.png') }}" alt="Chat" class="w-16 h-16 group-hover:animate-bounce">
+        </template>
+        <template x-if="isOpen">
+            <i class="fa-solid fa-xmark text-2xl"></i>
+        </template>
+    </button>
+
     <!-- Chat Widget -->
     <div x-show="isOpen"
+        x-cloak
         x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 transform scale-95"
-        x-transition:enter-end="opacity-100 transform scale-100"
+        x-transition:enter-start="opacity-0 translate-y-10 scale-95"
+        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
         x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100 transform scale-100"
-        x-transition:leave-end="opacity-0 transform scale-95"
-        class="ai-support-chat">
-        <div class="ai-support-header">
-            <div class="d-flex align-items-center">
-                <div class="ai-support-avatar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
+        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+        x-transition:leave-end="opacity-0 translate-y-10 scale-95"
+        class="absolute bottom-20 right-0 w-[400px] max-w-[calc(100vw-48px)] h-[600px] max-h-[calc(100vh-120px)] bg-panel dark:bg-slate-900 rounded-[2.5rem] shadow-3xl border border-slate-200/50 dark:border-slate-800/50 flex flex-col overflow-hidden backdrop-blur-xl">
+        
+        <!-- Header -->
+        <div class="p-6 bg-slate-900 text-white flex justify-between items-center relative overflow-hidden">
+            <!-- Animation Background -->
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
+            
+            <div class="relative flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/10 p-2">
+                    <img src="{{ asset('assets/chat.png') }}" alt="AI" class="w-12 h-12 object-contain">
                 </div>
-                <div class="ms-2">
-                    <h6 class="mb-0">AI Support Assistant</h6>
-                    <small class="text-muted" x-text="isTyping ? 'Typing...' : 'Online'"></small>
+                <div>
+                    <h6 class="font-bold text-lg leading-tight">AI Assistant</h6>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest" x-text="isTyping ? 'Thinking...' : 'Online Now'"></span>
+                    </div>
                 </div>
             </div>
-            <button @click="toggleChat" class="btn-close btn-close-white" aria-label="Close"></button>
-            <button @click="clearMessages"class="btn btn-sm btn-danger ms-2 p-1"title="Clear Chat"><i class="bi bi-trash"></i></button>
-
+            <div class="relative flex items-center gap-4">
+                <button @click="clearMessages" class="w-10 h-10 p-2 text-red-500 flex items-center justify-center rounded-xl hover:bg-white/10 hover:text-white transition-all" title="Clear History">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                </button>
+                <button @click="toggleChat" class="w-10 h-10 p-2 flex items-center justify-center rounded-xl hover:bg-white/10 text-yellow-500 hover:text-white transition-all" aria-label="Close">
+                    <i class="fa-solid fa-minus text-lg"></i>
+                </button>
+            </div>
         </div>
 
-        <div class="ai-support-messages" x-ref="messagesContainer">
+        <!-- Messages Area -->
+        <div class="flex-grow overflow-y-auto px-6 py-8 space-y-6 scrollbar-none" x-ref="messagesContainer">
             <template x-if="messages.length === 0">
-                <div class="ai-support-welcome">
-                    <div class="text-center mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                        </svg>
+                <div class="text-center py-10 space-y-8">
+                    <div class="relative inline-block">
+                        <div class="absolute inset-0 bg-primary/20 blur-2xl rounded-full"></div>
+                        <div class="relative w-24 h-24 bg-surface dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto shadow-xl">
+                            <i class="fa-solid fa-face-smile-wink text-4xl text-primary"></i>
+                        </div>
                     </div>
-                    <p class="text-center text-muted mb-0">
-                        Hello! I'm your AI support assistant. How can I help you today?
-                    </p>
-                    <div class="mt-3">
-                        <button @click="sendQuickMessage('What courses do I have?')" class="btn btn-sm btn-outline-primary w-100 mb-2">
-                            <i class="bi bi-book me-1"></i> My Courses
+                    <div class="space-y-3">
+                        <h4 class="text-xl font-bold text-text-base">Marhaba! (Hello)</h4>
+                        <p class="text-sm text-text-muted max-w-[240px] mx-auto leading-relaxed">I'm your learning companion. Ask me anything about your journey!</p>
+                    </div>
+                    
+                    <div class="flex flex-col gap-2 pt-4">
+                        <button @click="sendQuickMessage('What courses do I have?')" class="group flex items-center gap-3 p-4 rounded-2xl bg-surface dark:bg-slate-800 border border-slate-200/50 dark:border-slate-800 hover:border-primary hover:bg-primary/5 transition-all text-left">
+                            <span class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center"><i class="fa-solid fa-book-bookmark text-primary group-hover:scale-110 transition-transform"></i></span>
+                            <span class="text-sm font-bold text-text-base">My Enrolled Courses</span>
                         </button>
-                        <button @click="sendQuickMessage('Check my payment status')" class="btn btn-sm btn-outline-primary w-100 mb-2">
-                            <i class="bi bi-credit-card me-1"></i> Payment Status
-                        </button>
-                        <button @click="sendQuickMessage('Show my invoices')" class="btn btn-sm btn-outline-primary w-100">
-                            <i class="bi bi-receipt me-1"></i> My Invoices
+                        <button @click="sendQuickMessage('Check my payment status')" class="group flex items-center gap-3 p-4 rounded-2xl bg-surface dark:bg-slate-800 border border-slate-200/50 dark:border-slate-800 hover:border-primary hover:bg-primary/5 transition-all text-left">
+                            <span class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center"><i class="fa-solid fa-receipt text-primary group-hover:scale-110 transition-transform"></i></span>
+                            <span class="text-sm font-bold text-text-base">Payment Records</span>
                         </button>
                     </div>
                 </div>
             </template>
 
             <template x-for="(message, index) in messages" :key="index">
-                <div class="ai-support-message" :class="message.role === 'user' ? 'user-message' : 'assistant-message'">
-                    <div class="message-content" x-html="formatMessage(message.content)"></div>
-                    <div class="message-time" x-text="formatTime(message.timestamp)"></div>
+                <div class="flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300" :class="message.role === 'user' ? 'items-end' : 'items-start'">
+                    <div class="max-w-[85%] px-5 py-3.5 rounded-[1.5rem] text-sm leading-relaxed shadow-sm"
+                         :class="message.role === 'user' 
+                            ? 'bg-primary text-white rounded-br-none' 
+                            : 'bg-surface dark:bg-slate-800 text-text-base rounded-tl-none border border-slate-100 dark:border-slate-800'">
+                        <div x-html="formatMessage(message.content)" class="prose-sm overflow-hidden text-wrap break-words"></div>
+                    </div>
+                    <span class="text-[9px] font-bold text-text-muted mt-2 px-2 uppercase tracking-widest opacity-60" x-text="formatTime(message.timestamp)"></span>
                 </div>
             </template>
 
-            <div x-show="isTyping" class="ai-support-message assistant-message">
-                <div class="message-content">
-                    <span class="typing-indicator">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </span>
+            <div x-show="isTyping" class="flex items-start animate-pulse">
+                <div class="bg-surface dark:bg-slate-800 px-5 py-4 rounded-[1.5rem] rounded-tl-none border border-slate-100 dark:border-slate-800">
+                    <div class="flex gap-1.5">
+                        <span class="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce"></span>
+                        <span class="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce delay-100"></span>
+                        <span class="w-1.5 h-1.5 bg-primary/80 rounded-full animate-bounce delay-200"></span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="ai-support-input">
-            <form @submit.prevent="sendMessage" class="d-flex gap-2">
+        <!-- Input Area -->
+        <div class="p-6 bg-panel dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
+            <form @submit.prevent="sendMessage" class="relative group">
                 <input
                     type="text"
                     x-model="inputMessage"
                     @keydown.enter.prevent="sendMessage"
-                    placeholder="Type your message..."
-                    class="form-control form-control-sm"
+                    placeholder="Ask me anything..."
+                    class="w-full bg-surface h-16 dark:bg-slate-800 border-slate-200 dark:border-slate-800 rounded-2xl py-4.5 pl-6 pr-14 text-sm font-medium focus:border-primary focus:ring-4 focus:ring-primary/10 dark:text-white placeholder:text-slate-400 transition-all outline-none"
                     :disabled="isTyping"
                     x-ref="inputField">
                 <button
                     type="submit"
-                    class="btn btn-primary btn-sm"
+                    class="absolute right-2 top-2 w-11 h-11 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
                     :disabled="!inputMessage.trim() || isTyping">
-                    <i class="bi bi-send"></i>
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
                 </button>
             </form>
+            <p class="text-[9px] text-center text-text-muted mt-4 font-bold uppercase tracking-[0.2em] opacity-50">CourseBook Intelligent Support</p>
         </div>
     </div>
 </div>
@@ -195,7 +221,11 @@ $currentUserId = $userId ?? Auth::id();
             },
 
             formatMessage(content) {
-                // Simple markdown-like formatting
+                if (content.includes('<') && content.includes('>')) {
+                    return content;
+                }
+                
+                // Simple markdown-like formatting for plain text
                 return content
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\*(.*?)\*/g, '<em>$1</em>')

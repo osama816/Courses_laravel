@@ -32,8 +32,12 @@ class Booking extends Model
         return $this->belongsTo(course::class);
     }
     public function payment()
-{
-    return $this->hasOne(\App\Models\Payment::class, 'booking_id');
-}
+    {
+        return $this->hasOne(\App\Models\Payment::class, 'booking_id');
+    }
 
+    public function invoice()
+    {
+        return $this->hasOne(Invoice::class);
+    }
 }
