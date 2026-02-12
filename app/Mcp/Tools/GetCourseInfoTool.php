@@ -6,7 +6,7 @@ use Illuminate\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use App\Models\course;
+use App\Models\Course;
 
 class GetCourseInfoTool extends Tool
 {
@@ -31,7 +31,7 @@ class GetCourseInfoTool extends Tool
             return Response::text('Error: course_id is required');
         }
 
-        $course = course::with(['category', 'instructor.user'])->find($courseId);
+        $course = Course::with(['category', 'instructor.user'])->find($courseId);
 
         if (!$course) {
             return Response::text('Error: Course not found');

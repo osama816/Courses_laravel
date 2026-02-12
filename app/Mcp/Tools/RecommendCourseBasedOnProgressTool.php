@@ -7,7 +7,7 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 use App\Models\User;
-use App\Models\course;
+use App\Models\Course;
 use App\Models\Booking;
 
 class RecommendCourseBasedOnProgressTool extends Tool
@@ -47,7 +47,7 @@ class RecommendCourseBasedOnProgressTool extends Tool
 
         if ($userBookings->isEmpty()) {
             // If no courses, recommend beginner courses
-            $recommendations = course::where('level', 'Beginner')
+            $recommendations = Course::where('level', 'Beginner')
                 ->where('available_seats', '>', 0)
                 ->with(['category', 'instructor.user'])
                 ->orderBy('rating', 'desc')
@@ -62,7 +62,7 @@ class RecommendCourseBasedOnProgressTool extends Tool
             $enrolledCourseIds = $userBookings->pluck('course_id')->toArray();
 
             // Recommend courses in same categories or next level
-            $recommendations = course::where('available_seats', '>', 0)
+            $recommendations = Course::where('available_seats', '>', 0)
                 ->whereNotIn('id', $enrolledCourseIds)
                 ->where(function ($query) use ($categories, $levels) {
                     $query->whereIn('category_id', $categories)

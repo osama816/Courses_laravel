@@ -22,7 +22,7 @@ class Instructor extends Model
 
     public function courses()
     {
-        return $this->hasMany(course::class);
+        return $this->hasMany(Course::class);
     }
     public function isInstructor(){
         return $this->user->role === 'instructor';

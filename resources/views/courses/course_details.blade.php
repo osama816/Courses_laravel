@@ -7,7 +7,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Breadcrumb / Back Navigation -->
         <nav class="flex mb-8 animate-fade-in" aria-label="Breadcrumb">
-            <a href="{{ route('courses.index') }}" class="inline-flex items-center text-sm font-medium text-text-muted hover:text-primary transition-colors group">
+            <a href="{{ route('home') }}" class="inline-flex items-center text-sm font-medium text-text-muted hover:text-primary transition-colors group">
                 <i class="fa-solid fa-arrow-left-long me-2 transition-transform group-hover:-translate-x-1"></i>
                 {{ __('nav.courses') }}
             </a>

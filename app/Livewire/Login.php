@@ -25,6 +25,10 @@ class Login extends Component
         if (Auth::attempt(['email' => $validate['email'], 'password' => $validate['password']], $this->remember)) {
             \Log::info('Login successful for: ' . $this->email);
             session()->regenerate();
+
+            if (!Auth::user()->hasAnyRole(Auth::user()->roles)) {
+                 Auth::user()->assignRole('student');
+            }
             
             return $this->redirect(route('home'), navigate: true);
         }

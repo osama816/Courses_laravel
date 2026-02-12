@@ -81,7 +81,7 @@
 
                 <!-- Desktop Nav -->
                 <div class="hidden lg:flex items-center space-x-10">
-                    <a href="{{ route('courses.index') }}" class="nav-link">
+                    <a href="{{ route('home') }}" class="nav-link">
                         <i class="fa-solid fa-grip mr-1.5"></i>{{ __('nav.courses') }}
                     </a>
                     <a href="{{ route('bookings.index') }}" class="nav-link">

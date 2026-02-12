@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\course;
-use App\Http\Requests\StorecourseRequest;
-use App\Http\Requests\UpdatecourseRequest;
+use App\Models\Course;
+use App\Http\Requests\StoreCourseRequest;
+use App\Http\Requests\UpdateCourseRequest;
 use  App\Services\CourseServices;
 use Symfony\Component\HttpFoundation\Request;
 use Illuminate\Support\Facades\Cache;
@@ -38,12 +38,12 @@ class CourseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorecourseRequest $request) {}
+    public function store(StoreCourseRequest $request) {}
 
     /**
      * Display the specified resource.
      */
-    public function show(course $course)
+    public function show(Course $course)
     {
         $course = $this->CourseServices->getCourse($course->id);
         return view("courses.course_details", ['course' => $course]);
@@ -52,7 +52,7 @@ class CourseController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(course $course)
+    public function edit(Course $course)
     {
         //
     }
@@ -60,7 +60,7 @@ class CourseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatecourseRequest $request, course $course)
+    public function update(UpdateCourseRequest $request, Course $course)
     {
         //
     }
@@ -68,7 +68,7 @@ class CourseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(course $course)
+    public function destroy(Course $course)
     {
         //
     }

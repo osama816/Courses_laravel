@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\course;
+use App\Models\Course;
 class PageController extends Controller
 {
     public function home()
     {
-        $courses = course::with(['instructor.user', 'category'])
+        $courses = Course::with(['instructor.user', 'category'])
             ->latest()
             ->take(6)
             ->get();

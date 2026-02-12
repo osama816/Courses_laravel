@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\course;
+use App\Models\Course;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\Invoice;
@@ -63,10 +63,8 @@ class BookingController extends Controller
             }
 
             if (in_array($validated['payment_method'], ['paymob', 'myfatoorah'])) {
-                // Generate unique intent token
                 $intentToken = 'booking_intent_' . uniqid() . '_' . time();
                 
-                // Store booking intent in cache (valid for 1 hour)
                 \Illuminate\Support\Facades\Cache::put($intentToken, [
                     'user_id' => $user->id,
                     'course_id' => $validated['course_id'],

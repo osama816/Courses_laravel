@@ -33,13 +33,6 @@
                         </div>
 
                         <div class="mt-12 flex items-center gap-6">
-                            <div class="flex -space-x-4">
-                                @for($i = 1; $i <= 4; $i++)
-                                    <div class="w-12 h-12 rounded-full border-4 border-white dark:border-slate-900 overflow-hidden bg-slate-200">
-                                        <img src="https://i.pravatar.cc/150?u={{ $i }}" alt="User">
-                                    </div>
-                                @endfor
-                            </div>
                             <div class="text-sm">
                                 <span class="block font-bold text-text-base">10k+ Students</span>
                                 <span class="text-text-muted">Joined our community</span>
@@ -50,7 +43,7 @@
                     <div class="relative group animate-fade-in-up delay-200">
                         <div class="relative bg-panel p-4 rounded-premium shadow-2xl overflow-hidden">
                             <img class="w-full h-auto rounded-xl object-cover"
-                                src="https://images.unsplash.com/photo-1513258496099-48168024aec0?q=80&w=1200&auto=format&fit=crop"
+                                src="{{ asset('storage/home2.jpg') }}"
                                 alt="Students learning online">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                         </div>

@@ -79,7 +79,6 @@ class McpSupportController extends Controller
     {
         $message = strtolower(trim($message));
         $userId = $userId;
-        // Check for course-related queries
         if (str_contains($message, 'course') || str_contains($message, 'enroll')) {
             $tool = new \App\Mcp\Tools\GetUserCoursesTool();
             $request = new \Laravel\Mcp\Request([
@@ -118,7 +117,6 @@ class McpSupportController extends Controller
             }
         }
 
-        // Check for payment-related queries
         if (str_contains($message, 'payment') || str_contains($message, 'invoice') || str_contains($message, 'paid')) {
             $payments = \App\Models\Payment::whereHas('booking', function ($q) use ($userId) {
                 $q->where('user_id', $userId);

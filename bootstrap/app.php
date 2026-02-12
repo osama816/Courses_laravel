@@ -24,6 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 \App\Http\Middleware\SetLocal::class,
             ]
         );
+        $middleware->validateCsrfTokens(except: [
+            'logout',
+        ]);
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
         ]);
@@ -33,5 +36,9 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*')) {
                 return  ApiResponse::error('Resource not found',  404);
             }
+        });
+
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException $e, Request $request) {
+            return redirect()->route('home')->with('error', app()->getLocale() == 'ar' ? 'ليس لديك صلاحية للوصول لهذه الصفحة' : 'You do not have permission to access this page.');
         });
     })->create();

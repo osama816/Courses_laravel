@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Livewire;
-use App\Models\course;
+use App\Models\Course;
 use Livewire\Component;
 
 class AvailableSeats extends Component

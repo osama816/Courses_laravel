@@ -30,6 +30,8 @@ class AuthController extends Controller
                 'password' => $data['password'],
             ]);
 
+            $user->assignRole('student');
+
             // generate a token
             $token = $user->createToken('auth_token')->plainTextToken;
 

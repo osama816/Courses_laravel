@@ -40,6 +40,8 @@ class FormRegister extends Component
             'role' => 'student'
         ]);
         
+        $user->assignRole('student');
+        
         \Log::info('Registration successful for: ' . $this->email);
         
         event(new \Illuminate\Auth\Events\Registered($user));

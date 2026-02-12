@@ -99,6 +99,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('permission:view payments')
             ->name('payment.booking');
 
+        Route::any('/callback', [PaymentController::class, 'callBack'])
+            ->name('payment.callback');
+
         Route::get('/success', [PaymentController::class, 'success'])
             ->name('payment.success');
 
@@ -141,3 +144,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
  * (login, register, password reset, etc.)
  */
 require __DIR__ . '/auth.php';
+

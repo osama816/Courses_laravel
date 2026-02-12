@@ -22,12 +22,16 @@
             padding: 40px;
             background: #fff;
         }
-        .header {
-            display: flex;
-            justify-content: space-between;
+        /* Refactored Header to Table */
+        .header-table {
+            width: 100%;
             margin-bottom: 40px;
-            padding-bottom: 20px;
             border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+        .header-table td {
+            vertical-align: top;
+            border: none; /* Reset default table border */
         }
         .logo {
             font-size: 24px;
@@ -53,13 +57,15 @@
             border-bottom: 1px solid #ddd;
             padding-bottom: 5px;
         }
-        .two-columns {
-            display: flex;
-            justify-content: space-between;
+        /* Refactored Columns to Table */
+        .columns-table {
+            width: 100%;
             margin-bottom: 20px;
         }
-        .column {
-            width: 48%;
+        .columns-table td {
+            vertical-align: top;
+            width: 50%;
+            border: none;
         }
         .info-row {
             margin-bottom: 8px;
@@ -69,17 +75,18 @@
             display: inline-block;
             width: 120px;
         }
-        table {
+        /* Standard Data Table */
+        .data-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        th, td {
+        .data-table th, .data-table td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
-        th {
+        .data-table th {
             background-color: #f5f5f5;
             font-weight: bold;
         }
@@ -129,57 +136,63 @@
 </head>
 <body>
     <div class="invoice-container">
-        <div class="header">
-            <div>
-                <div class="logo">CourseBook</div>
-                <div style="margin-top: 10px; color: #666;">
-                    Online Course Platform<br>
-                    support@coursebook.test
-                </div>
-            </div>
-            <div class="invoice-info">
-                <div class="invoice-number">Invoice #{{ $invoice->invoice_number }}</div>
-                <div style="margin-top: 10px;">
-                    <div>Date: {{ $invoice->issued_at->format('F d, Y') }}</div>
-                    <div>Status: 
-                        <span class="status-badge status-{{ $invoice->status }}">
-                            {{ strtoupper($invoice->status) }}
-                        </span>
+        <!-- Header Table -->
+        <table class="header-table">
+            <tr>
+                <td>
+                    <div class="logo">CourseBook</div>
+                    <div style="margin-top: 10px; color: #666;">
+                        Online Course Platform<br>
+                        support@coursebook.test
                     </div>
-                </div>
-            </div>
-        </div>
+                </td>
+                <td class="invoice-info">
+                    <div class="invoice-number">Invoice #{{ $invoice->invoice_number }}</div>
+                    <div style="margin-top: 10px;">
+                        <div>Date: {{ $invoice->issued_at->format('F d, Y') }}</div>
+                        <div>Status: 
+                            <span class="status-badge status-{{ $invoice->status }}">
+                                {{ strtoupper($invoice->status) }}
+                            </span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
 
         <div class="section">
             <div class="section-title">Bill To</div>
-            <div class="two-columns">
-                <div class="column">
-                    <div class="info-row">
-                        <strong>{{ $user->name }}</strong>
-                    </div>
-                    <div class="info-row">{{ $user->email }}</div>
-                </div>
-                <div class="column">
-                    <div class="section-title" style="border: none; margin-bottom: 10px;">Payment Details</div>
-                    <div class="info-row">
-                        <span class="info-label">Method:</span>
-                        {{ ucfirst($payment->payment_method) }}
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Transaction ID:</span>
-                        {{ $payment->transaction_id }}
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Paid At:</span>
-                        {{ $payment->paid_at ? $payment->paid_at->format('F d, Y H:i') : 'N/A' }}
-                    </div>
-                </div>
-            </div>
+            <!-- Two Columns Table -->
+            <table class="columns-table">
+                <tr>
+                    <td>
+                        <div class="info-row">
+                            <strong>{{ $user->name }}</strong>
+                        </div>
+                        <div class="info-row">{{ $user->email }}</div>
+                    </td>
+                    <td>
+                        <div class="section-title" style="border: none; margin-bottom: 10px;">Payment Details</div>
+                        <div class="info-row">
+                            <span class="info-label">Method:</span>
+                            {{ ucfirst($payment->payment_method) }}
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Transaction ID:</span>
+                            {{ $payment->transaction_id }}
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Paid At:</span>
+                            {{ $payment->paid_at ? $payment->paid_at->format('F d, Y H:i') : 'N/A' }}
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
 
         <div class="section">
             <div class="section-title">Course Details</div>
-            <table>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Course</th>

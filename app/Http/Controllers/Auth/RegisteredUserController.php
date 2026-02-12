@@ -42,6 +42,7 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        \Illuminate\Support\Facades\Log::info("Registering user: {$user->email}. Assigning 'student' role.");
         $user->assignRole('student');
 
         event(new Registered($user));

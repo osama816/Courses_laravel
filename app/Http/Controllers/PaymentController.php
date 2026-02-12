@@ -48,7 +48,6 @@ class PaymentController extends Controller
     public function callBack(Request $request)
     {
         try {
-            // Verify payment
             $verificationResult = $this->verificationService->verifyPayment($request);
 
             if (!$verificationResult['success']) {
@@ -56,7 +55,6 @@ class PaymentController extends Controller
                 return redirect()->route('payment.failed');
             }
 
-            // Process successful payment
             $result = $this->processingService->processSuccessfulPayment($verificationResult['data']);
             Log::channel('payment')->error('Request date: ', [$result['booking']->id, $result['invoice']->id]);
             return redirect()
