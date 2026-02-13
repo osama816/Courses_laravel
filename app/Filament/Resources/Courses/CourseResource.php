@@ -23,7 +23,6 @@ class CourseResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-   // protected static ?string $recordTitleAttribute = 'title';
     public static function getRecordTitle(?Model $record): string
 {
     return $record->title[app()->getLocale()] ?? 'Course';

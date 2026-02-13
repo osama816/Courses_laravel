@@ -16,37 +16,20 @@ class PaymentFailureService
         Log::channel('payment')->warning('Payment failed', $paymentData);
 
         $bookingId = $paymentData['booking_id'] ?? null;
-
         if ($bookingId) {
-            $this->createSupportTicket($bookingId, $paymentData);
-        }
-    }
+            $booking = Booking::find($bookingId);
+            if ($booking) {
+                $booking->status = 'failed';
+                $booking->save();
 
-    /**
-     * Create support ticket for failed payment
-     */
-    private function createSupportTicket(int $bookingId, array $paymentData): void
-    {
-        try {
-            $booking = Booking::with('user')->find($bookingId);
-
-            if ($booking && $booking->user) {
-                SupportTicket::create([
-                    'ticket_number' => SupportTicket::generateTicketNumber(),
-                    'user_id' => $booking->user_id,
-                    'subject' => 'Payment failed - Transaction number:' . ($paymentData['TransactionId'] ?? 'unknown'),
-                    'message' => 'Payment verification failed. Please review your payment details and contact support if necessary.',
-                    'priority' => 'high',
-                    'status' => 'open',
-                ]);
-
-                Log::channel('payment')->info('Support ticket created for failed payment', [
-                    'booking_id' => $bookingId,
-                    'user_id' => $booking->user_id,
-                ]);
+                Log::channel('payment')->info("Booking ID {$bookingId} marked as failed.");
+            } else {
+                Log::channel('payment')->error("Booking ID {$bookingId} not found for payment failure.");
             }
-        } catch (\Exception $e) {
-            Log::channel('payment')->error('Failed to create support ticket: ' . $e->getMessage());
+        } else {
+            Log::channel('payment')->error('No booking ID provided in payment failure data.');
         }
     }
+
+
 }

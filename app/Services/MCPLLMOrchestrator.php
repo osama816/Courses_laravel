@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Laravel\Mcp\Facades\Mcp;
 use Illuminate\Support\Facades\Log;
+use App\Services\LLMService;
 
 class MCPLLMOrchestrator
 {
@@ -24,11 +25,11 @@ class MCPLLMOrchestrator
         if (empty($this->conversationHistory)) {
             $user_id = $context['user_id'] ?? 'Unknown';
             $user_name = $context['user_name'] ?? 'Guest';
-            
+
             $this->conversationHistory[] = [
                 'role' => 'system',
-                'content' => "You are a helpful student support assistant. 
-                              The current user is: $user_name (ID: $user_id). 
+                'content' => "You are a helpful student support assistant.
+                              The current user is: $user_name (ID: $user_id).
                               Use the user_id $user_id when calling tools like GetUserCoursesTool or GetPaymentStatusTool.
                               Always verify data using tools before answering specific account questions."
             ];

@@ -6,6 +6,7 @@ use App\Helper\ApiResponse;
 use Illuminate\Http\Request;
 use App\Interfaces\PaymentGatewayInterface;
 use Illuminate\Support\Facades\Log;
+use App\Services\BasePaymentService;
 
 class PaymobPaymentService extends BasePaymentService implements PaymentGatewayInterface
 {
@@ -38,7 +39,7 @@ class PaymobPaymentService extends BasePaymentService implements PaymentGatewayI
             return $response->getData(true);
         }
 
-        return ApiResponse::error('فشل بدء الدفع', [
+        return ApiResponse::error('failed payment ', [
             'url' => route('payment.failed')
         ], 500);
     }
@@ -83,7 +84,7 @@ class PaymobPaymentService extends BasePaymentService implements PaymentGatewayI
     protected function formatPaymentData(Request $request): array
     {
         return [
-            'amount_cents' => $request->get('amount_cents'), // Already multiplied by 100 in controller
+            'amount_cents' => $request->get('amount_cents'), 
             'currency' => $request->get('currency', 'EGP'),
             'api_source' => 'INVOICE',
             'integrations' => $this->integrations_id,

@@ -6,6 +6,7 @@ use App\Helper\ApiResponse;
 use App\Interfaces\PaymentGatewayInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Services\BasePaymentService;
 
 class MyFatoorahPaymentService extends BasePaymentService implements PaymentGatewayInterface
 {

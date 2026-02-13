@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Booking;
 use App\Models\Payment;
-use App\Models\Invoice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
@@ -14,22 +13,22 @@ use App\Http\Requests\UpdateBookingRequest;
 
 class BookingController extends Controller
 {
-   
+
     public function index()
     {
         $bookings = Booking::with(['payment', 'invoice'])
             ->where('user_id', Auth::id())
             ->latest()
             ->get();
-            
+
         return view('bookings.show_All', compact('bookings'));
     }
 
-  
+
     public function create($course)
     {
         $course = Course::findOrFail($course);
-        
+
         $existingBooking = Booking::where('user_id', Auth::id())
             ->where('course_id', $course->id)
             ->whereIn('status', ['pending', 'confirmed'])
@@ -43,12 +42,12 @@ class BookingController extends Controller
         return view('bookings.create', ['course' => $course]);
     }
 
-    
-    
+
+
     public function store(StoreBookingRequest $request)
     {
         $validated = $request->validated();
-        
+
         try {
             DB::beginTransaction();
 
@@ -64,7 +63,7 @@ class BookingController extends Controller
 
             if (in_array($validated['payment_method'], ['paymob', 'myfatoorah'])) {
                 $intentToken = 'booking_intent_' . uniqid() . '_' . time();
-                
+
                 \Illuminate\Support\Facades\Cache::put($intentToken, [
                     'user_id' => $user->id,
                     'course_id' => $validated['course_id'],
@@ -118,7 +117,6 @@ class BookingController extends Controller
 
             DB::commit();
             return redirect()->route('bookings.index');
-            
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()
@@ -143,7 +141,7 @@ class BookingController extends Controller
         //
     }
 
-    
+
     public function destroy(Booking $booking)
     {
         $booking->delete();

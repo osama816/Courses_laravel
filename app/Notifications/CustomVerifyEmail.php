@@ -20,7 +20,6 @@ class CustomVerifyEmail extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        // توليد رابط التفعيل
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             Carbon::now()->addMinutes(60),
